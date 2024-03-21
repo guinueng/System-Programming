@@ -10,8 +10,9 @@ int main(){
         printf("input.txt does not opened normally.");
     else{
         size_t read_trials = 0;
-        while( (result = fgets(*read_line, 64, input_txt)) != NULL){
-            printf("Read line : %s", read_line);
+        read_line = malloc(64);
+        while( (result = fgets(read_line, 64, input_txt)) != NULL){
+            printf("Read line : %s\n", read_line);
             fputs(read_line, output_txt);
         }
     }
