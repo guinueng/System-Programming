@@ -9,15 +9,21 @@ int main(){
     if(input_txt == NULL)
         printf("input.txt does not opened normally.");
     else{
-        size_t read_trials = 0;
+        size_t read_trials = 1;
         read_line = malloc(65);
+        tot_line = malloc(65);
         while( (result = fgets(read_line, 65, input_txt)) != NULL){
             if(*read_line != '\n'){
-                printf("Read line : %s\n", read_line);
-                fputs(read_line, output_txt);
+                if(read_trials != 1){
+                    realloc(tot_line, 65 * read_trials);
+                }
+                else{
+                    tot_line = read_line;
+                }
+                printf("Read line : %s\nTot line : %s", read_line, tot_line);
             }
             else{
-                
+                fputs(tot_line, output_txt);
             }
         }
     }
