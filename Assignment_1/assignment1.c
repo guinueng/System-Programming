@@ -8,7 +8,7 @@ int main(){
     FILE* output_txt = fopen("output_test.txt", "a");
     char *read_line, *tot_line, *result, *reloc_mem_add;
     char *sign_char, *ascii, *un_char, *sign_int, *un_int, *sign_float, *sign_double; // We have to save the result.
-
+    sign_char = malloc(16);
     if(input_txt == NULL)
         printf("input.txt does not opened normally.");
     else{
@@ -44,7 +44,6 @@ int main(){
                 // char *sign_char, *ascii, *un_char, *sign_int, *un_int, *sign_float, *sign_double;
                 //reloc_mem_add = realloc(sign_char, (line_len / 4 / sizeof(signed char)));
                 //printf("%ld", sizeof(sign_char));
-
                 conv_bin_to_sign_char_type(tot_line, sign_char, sizeof(signed char));
                 printf("Signed Char : %s", sign_char);
 
@@ -68,5 +67,6 @@ int main(){
         read_trials = 1;
         printf("Reset\n\n");*/
     }
+
     return 0;
 }

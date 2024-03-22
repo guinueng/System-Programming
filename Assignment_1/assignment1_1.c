@@ -5,21 +5,28 @@
 #include "assignment1_1.h"
 
 void conv_bin_to_sign_char_type(char* bin_line, char* return_line, size_t target_size){
+    printf("Conv function\n");
     size_t line_len = strlen(bin_line);
     size_t bin_size = 8 * target_size;
     size_t tot_qty = line_len / bin_size;
-    char* return_mem_add = realloc(return_line, tot_qty);
+    printf("%ld %ld %ld\n", line_len, bin_size, tot_qty);
+    char* return_mem_add = realloc(return_line, tot_qty + 1);
     if(return_mem_add == NULL)
         printf("Mem reallocation failed.\n");
     
-    for(size_t trial = 1; trial <= tot_qty; trial--){
+    for(size_t trial = 1; trial <= tot_qty; trial++){
+        printf("%d th position\n", trial);
         char tmp[bin_size];
-        int result = 0;
-        strncpy(tmp, &return_line[line_len - (bin_size * trial)], bin_size);
-        for(size_t digit = bin_size; digit >= 0; digit--){
-            result += (tmp[digit] * pow(2, digit));
+        unsigned char result = 0;
+        printf("Target pos : %d\n", line_len - (bin_size * trial) - 1);
+        printf("Target partial string : %s\n", return_line + (line_len - (bin_size * trial) - 1));
+        strncpy(tmp, return_line + (line_len - (bin_size * trial) - 2), bin_size);
+        printf("Copied binary line : %s | strlen : %d\n", tmp, strlen(tmp));
+        for(size_t digit = bin_size; digit >= 1; digit--){
+            printf("%ld th value : %d * %d = %d\n", digit, (int)tmp[digit], (int)pow(2,digit), (int)tmp[digit] * (int)pow(2, digit));
+            result += (unsigned char)(tmp[digit] * (int)pow(2, digit));
         }
-        
-        strcat(return_line, (char)result);
+        printf("%c", result);
+        strcat(return_line, &result);
     }
 }
