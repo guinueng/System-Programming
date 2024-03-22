@@ -7,7 +7,11 @@ int main(){
     FILE* input_txt = fopen("input.txt", "r");
     FILE* output_txt = fopen("output_test.txt", "a");
     char *read_line, *tot_line, *result, *reloc_mem_add;
-    char *sign_char, *ascii, *un_char, *sign_int, *un_int, *sign_float, *sign_double; // We have to save the result.
+    char *ascii, *un_char, *sign_int, *un_int, *sign_float, *sign_double; // We have to save the result.
+    unsigned char *sign_char;
+    //sign_char = malloc(sizeof(char) * 14);
+    //strcpy(sign_char, "Signed Char: ");
+    //unsigned char *sign_char;
     sign_char = malloc(16);
     if(input_txt == NULL)
         printf("input.txt does not opened normally.");
@@ -44,8 +48,9 @@ int main(){
                 // char *sign_char, *ascii, *un_char, *sign_int, *un_int, *sign_float, *sign_double;
                 //reloc_mem_add = realloc(sign_char, (line_len / 4 / sizeof(signed char)));
                 //printf("%ld", sizeof(sign_char));
+                printf("Before Signed Char : %s|strlen : %ld|size : %ld\n", sign_char, strlen(sign_char), sizeof(sign_char));
                 conv_bin_to_sign_char_type(tot_line, sign_char, sizeof(signed char));
-                printf("Signed Char : %s", sign_char);
+                printf("Signed Char : %s\n", sign_char);
 
                 /*printf("Tot line which appended : %s\n", tot_line);
                 fputs(tot_line, output_txt);
