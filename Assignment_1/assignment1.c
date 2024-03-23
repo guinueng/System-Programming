@@ -14,7 +14,7 @@ int main(){
     //sign_char = malloc(sizeof(char) * 14);
     //strcpy(sign_char, "Signed Char: ");
     //unsigned char *sign_char;
-    ascii = malloc(16);
+    ascii = malloc(17);
     if(input_txt == NULL)
         printf("input.txt does not opened normally.");
     else{
@@ -30,7 +30,7 @@ int main(){
             if(*read_line != '\n'){ // If the case that we picked on line is not 'n'
                 if(read_trials != 1){
                     printf("Read_trials : %ld\n", read_trials);
-                    reloc_mem_add = realloc(tot_line, (read_trials * 65));
+                    reloc_mem_add = realloc(tot_line, (read_trials * 64) + 1);
                     if(reloc_mem_add == NULL)
                         printf("Mem reallocation failed.\n");
                     else{
@@ -54,6 +54,7 @@ int main(){
                 printf("Before ascii Char : %s|strlen : %ld|size : %ld\n", ascii, strlen(ascii), sizeof(ascii));
                 conv_bin_to_sign_ascii_type(tot_line, ascii, sizeof(char));
                 fputs(ascii, output_txt);
+                printf("ASCII result : %s\n", ascii);
                 /*printf("Tot line which appended : %s\n", tot_line);
                 fputs(tot_line, output_txt);
                 free(read_line);

@@ -11,7 +11,7 @@ void conv_bin_to_sign_ascii_type(char* bin_line, char* return_line, size_t targe
     size_t bin_size = 8 * target_size;
     size_t tot_qty = line_len / bin_size;
     printf("%ld %ld %ld\n", line_len, bin_size, tot_qty);
-    printf("strlen : %ld\n", strlen(return_line));
+    printf("return line strlen : %ld\n", strlen(return_line));
     char* return_mem_add = realloc(return_line, strlen(return_line) + 1 + (tot_qty * 2));
     if(return_mem_add == NULL)
         printf("Mem reallocation failed.\n");
