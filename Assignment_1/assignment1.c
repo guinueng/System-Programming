@@ -7,15 +7,18 @@ int main(){
     FILE* input_txt = fopen("input.txt", "r");
     FILE* output_txt = fopen("output_test.txt", "a");
     char *read_line, *tot_line, *result, *reloc_mem_add;
-    char *ascii, *un_char, *sign_int, *un_int, *sign_float, *sign_double; // We have to save the result.
-    unsigned char *sign_char;
+    char *sign_char, *ascii, *un_char, *sign_int, *un_int, *sign_float, *sign_double; // We have to save the result.
+    char *ascii_rst;
+    ascii_rst = malloc(14);
+    memcpy(ascii_rst, &"ASCII Codes: ", 13);
     //sign_char = malloc(sizeof(char) * 14);
     //strcpy(sign_char, "Signed Char: ");
     //unsigned char *sign_char;
-    sign_char = malloc(16);
+    ascii = malloc(16);
     if(input_txt == NULL)
         printf("input.txt does not opened normally.");
     else{
+        fputs("ASCII Codes: ", output_txt);
         size_t read_trials = 1;
         size_t line = 1; // We have to consider which line we get the binaries and how many binaries in that line.
         read_line = malloc(65);
@@ -48,10 +51,9 @@ int main(){
                 // char *sign_char, *ascii, *un_char, *sign_int, *un_int, *sign_float, *sign_double;
                 //reloc_mem_add = realloc(sign_char, (line_len / 4 / sizeof(signed char)));
                 //printf("%ld", sizeof(sign_char));
-                printf("Before Signed Char : %s|strlen : %ld|size : %ld\n", sign_char, strlen(sign_char), sizeof(sign_char));
-                conv_bin_to_sign_char_type(tot_line, sign_char, sizeof(signed char));
-                printf("Signed Char : %s\n", sign_char);
-
+                printf("Before ascii Char : %s|strlen : %ld|size : %ld\n", ascii, strlen(ascii), sizeof(ascii));
+                conv_bin_to_sign_ascii_type(tot_line, ascii, sizeof(char));
+                fputs(ascii, output_txt);
                 /*printf("Tot line which appended : %s\n", tot_line);
                 fputs(tot_line, output_txt);
                 free(read_line);
@@ -60,6 +62,7 @@ int main(){
                 tot_line = malloc(65);
                 read_trials = 1;
                 printf("Reset\n\n");*/
+                read_trials = 1;
             }
         }
         /*printf("Else case\n");
@@ -73,5 +76,6 @@ int main(){
         printf("Reset\n\n");*/
     }
 
+    free(ascii);
     return 0;
 }
