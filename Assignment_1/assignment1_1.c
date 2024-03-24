@@ -25,9 +25,12 @@ char* bin_to_s_char(char* bin_line, char* return_line, size_t target_size){
         }
         tmp[bin_size] = '\0'; // The last part of array should be NULL.
 
-        for(int digit = bin_size - 1; digit >= 0; digit--) // Converting binary into decimal #. Need to fix it to apply negative value calculation.
-            result += ((tmp[digit] - 48) * (int)pow(2,bin_size - digit - 1));
-
+        for(int digit = bin_size - 1; digit >= 0; digit--){ // Converting binary into decimal #. Need to fix it to apply negative value calculation.
+            if(digit != (bin_size - 1))
+                result += ((tmp[digit] - 48) * (int)pow(2,bin_size - digit - 1));
+            else
+                result -= ((tmp[digit] - 48) * (int)pow(2,bin_size - digit - 1));
+        }
         char *s_char_to_str;
         s_char_to_str = malloc(5); // Char range : -128 ~ 127. Thus, maximum 5 location is needed.
         sprintf(s_char_to_str, "%u", result); // Converting char's integer value into string.
