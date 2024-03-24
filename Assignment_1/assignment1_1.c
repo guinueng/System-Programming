@@ -39,7 +39,7 @@ char* conv_bin_to_ascii_type(char* bin_line, char* return_line, size_t target_si
     return return_line; // Returns mem loc. Because when using realloc, mem add may change.
 }
 
-unsigned char* conv_bin_to_sign_char_type(char* bin_line, unsigned char* return_line, size_t target_size){
+char* conv_bin_to_sign_char_type(char* bin_line, char* return_line, size_t target_size){
     printf("\nConv function\n");
     printf("Given string : %s\n", bin_line);
     size_t line_len = strlen(bin_line);
@@ -48,7 +48,7 @@ unsigned char* conv_bin_to_sign_char_type(char* bin_line, unsigned char* return_
     size_t start_pos = strlen(return_line);
     printf("%ld %ld %ld\n", line_len, bin_size, tot_qty);
     printf("return line strlen : %ld\n\n", start_pos);
-    unsigned char* return_mem_add = realloc(return_line, (start_pos + (tot_qty * 2) + 1) );
+    unsigned char* return_mem_add = realloc(return_line, (start_pos + (tot_qty * 4) + 1) );
     if(return_mem_add == NULL)
         printf("Mem reallocation failed.\n");
     return_line = return_mem_add;
@@ -78,18 +78,23 @@ unsigned char* conv_bin_to_sign_char_type(char* bin_line, unsigned char* return_
         printf("Copied binary line : %s | strlen : %ld\n", tmp, strlen(tmp));
         for(int digit = bin_size - 1; digit >= 0; digit--){
             //printf("%d th value : %d * %d = %d\n", digit, (tmp[digit] - 48), (int)pow(2,bin_size - digit), (int)(tmp[digit] - 48) * (int)pow(2,bin_size - digit - 1));
-            result += (unsigned char)((tmp[digit] - 48) * (int)pow(2,bin_size - digit - 1));
+            result += ((tmp[digit] - 48) * (int)pow(2,bin_size - digit - 1));
         }
+        char *conv_uchar_to_string;
+        conv_uchar_to_string = malloc(100); // Must change value later.
+        sprintf(conv_uchar_to_string, "%u", result);
         printf("Calc result : %u | sizeof : %ld\n", result, sizeof result);
+        printf("Conv to string result : %s\n", conv_uchar_to_string);
         printf("Before memcpy strlen : %ld\n", strlen(return_line));
         //memcpy(return_line + strlen(return_line), &result, sizeof result);
-        memcpy(return_line + start_pos, &result, sizeof result);
+        
+        memcpy(return_line + start_pos, conv_uchar_to_string, sizeof(conv_uchar_to_string));
         char blank = ' ';
         memcpy(return_line + strlen(return_line), &blank, 1);
         printf("Result line : %s| strlen : %ld\n", return_line, strlen(return_line));
     }
-    char null_ = '\0';
-    memcpy(return_line + strlen(return_line), &null_, 1); // Add null in the last part of string.
+    //char null_ = '\0';
+    //memcpy(return_line + strlen(return_line), &null_, 1); // Add null in the last part of string.
 
     return return_line; // Returns mem loc. Because when using realloc, mem add may change.
 }

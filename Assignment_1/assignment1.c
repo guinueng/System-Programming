@@ -7,11 +7,11 @@ int main(){
     FILE* input_txt = fopen("input.txt", "r");
     FILE* output_txt = fopen("output_test.txt", "a");
     char *read_line, *tot_line, *result, *reloc_mem_add;
-    char *ascii, *un_char, *sign_int, *un_int, *sign_float, *sign_double; // We have to save the converted result.
+    char *sign_char, *ascii, *un_char, *sign_int, *un_int, *sign_float, *sign_double; // We have to save the converted result.
     char *ascii_rst, *sign_char_rst; // We have to save final result.
-    unsigned char *sign_char;
+    //unsigned char *sign_char;
     ascii_rst = malloc(14);
-    memcpy(ascii_rst, &"ASCII Codes: ", 13);
+    memcpy(ascii_rst, "ASCII Codes: ", 13);
     sign_char_rst = malloc(14);
     memcpy(sign_char_rst, "Signed Char: ", 13);
     ascii = malloc(16);

@@ -1,2 +1,10 @@
 ASCII Codes: ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ 
 Signed Char: ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ 
+ASCII Codes: ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ 
+Signed Char: 3 8 8 6 1 1 9 6 3 8 8 6 1 1 9 6 3 8 8 6 1 1 9 6 3 8 8 6 1 1 9 6 3 8 8 6 1 1 9 6 3 8 8 6 1 1 9 6 3 8 8 6 1 1 9 6 3 8 8 6 1 1 9 6 3 8 8 6 1 1 9 6 3 8 8 6 1 1 9 6 
+ASCII Codes: ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ 
+Signed Char: 38861196388611963886119638861196388611963886119638861196388611963886119638861196
+ASCII Codes: ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ 
+Signed Char: 33 81 86 61 109 100 99 64 33 81 86 61 109 100 99 64 33 81 86 61 109 100 99 64 33 \81 86 61 109 100 99 64 33 81 86 61 109 100 99 64 33 81 86 61 109 100 99 64 33 \81 86 61 109 100 99 64 33 81 86 61 109 100 99 64 33 81 86 61 109 100 99 64 33 81 86 61 109 100 99 64 
+ASCII Codes: ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ ! Q V = m d c @ 
+Signed Char: 33 81 86 61 109 100 99 64 33 81 86 61 109 100 99 64 33 81 86 61 109 100 99 64 33 d81 86 61 109 100 99 64 33 81 86 61 109 100 99 64 33 81 86 61 109 100 99 64 33 d81 86 61 109 100 99 64 33 81 86 61 109 100 99 64 33 81 86 61 109 100 99 64 33 81 86 61 109 100 99 64 

@@ -1,2 +1,2 @@
 char* conv_bin_to_ascii_type(char* bin_line, char* return_line, size_t target_size);
-unsigned char* conv_bin_to_sign_char_type(char* bin_line, unsigned char* return_line, size_t target_size);
+char* conv_bin_to_sign_char_type(char* bin_line, char* return_line, size_t target_size);
