@@ -97,18 +97,7 @@ int main(){
         read_trials = 1;
         printf("Reset\n\n");*/
 
-        ascii = conv_bin_to_ascii_type(tot_line, ascii, sizeof(char));
-        reloc_mem_add = realloc(ascii_rst, strlen(ascii_rst) + strlen(ascii) + 1);
-        if(reloc_mem_add == NULL)
-            printf("Mem reallocation failed.\n");
-        ascii_rst = reloc_mem_add;
-        strcat(ascii_rst, ascii);
-        strcat(ascii_rst, "\n");
         const char null_ = '\0';
-        memcpy(ascii_rst + strlen(ascii_rst), &null_, 1); // Add null in the last part of string.
-        fputs(ascii_rst, output_txt);
-        printf("Finished ASCII part.");
-
         sign_char = conv_bin_to_sign_char_type(tot_line, sign_char, sizeof(signed char));
         reloc_mem_add = realloc(sign_char_rst, strlen(sign_char_rst) + strlen(sign_char) + 1);
         if(reloc_mem_add == NULL)
@@ -118,6 +107,17 @@ int main(){
         strcat(sign_char_rst, "\n");
         memcpy(sign_char_rst + strlen(sign_char_rst), &null_, 1); // Add null in the last part of string.
         fputs(sign_char_rst, output_txt);
+
+        ascii = conv_bin_to_ascii_type(tot_line, ascii, sizeof(char));
+        reloc_mem_add = realloc(ascii_rst, strlen(ascii_rst) + strlen(ascii) + 1);
+        if(reloc_mem_add == NULL)
+            printf("Mem reallocation failed.\n");
+        ascii_rst = reloc_mem_add;
+        strcat(ascii_rst, ascii);
+        strcat(ascii_rst, "\n");
+        memcpy(ascii_rst + strlen(ascii_rst), &null_, 1); // Add null in the last part of string.
+        fputs(ascii_rst, output_txt);
+        printf("Finished ASCII part.");
     }
 
     free(ascii); // Free mem space when we allocated above.
