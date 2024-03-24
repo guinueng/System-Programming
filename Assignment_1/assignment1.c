@@ -7,19 +7,22 @@ int main(){
     FILE* input_txt = fopen("input.txt", "r");
     FILE* output_txt = fopen("output_test.txt", "a");
     char *read_line, *tot_line, *result, *reloc_mem_add;
-    char *s_char, *u_char, *ascii, *un_char, *sign_int, *un_int, *sign_float, *sign_double; // We have to save the converted result.
-    char *s_char_rst, *ascii_rst, *u_char_rst; // We have to save final result.
+    char *s_char, *ascii, *u_char, *s_int, *un_int, *sign_float, *sign_double; // We have to save the converted result.
+    char *s_char_rst, *ascii_rst, *u_char_rst, *s_int_rst; // We have to save final result.
 
     s_char = malloc(16);
     ascii = malloc(16);
     u_char = malloc(16);
+    s_int = malloc(4);
 
     s_char_rst = malloc(14);
     ascii_rst = malloc(14);
     u_char_rst = malloc(16);
+    s_int_rst = malloc(13);
     memcpy(s_char_rst, "Signed Char: ", 13);
     memcpy(ascii_rst, "ASCII Codes: ", 13);
     memcpy(u_char_rst, "Unsigned Char: ", 15);
+    memcpy(s_int_rst, "Signed Int: ", 12);
     
     //ascii = malloc(17);
     //fputs("ASCII Codes: ", output_txt);
@@ -62,12 +65,10 @@ int main(){
                 //reloc_mem_add = realloc(sign_char, (line_len / 4 / sizeof(signed char)));
                 //printf("%ld", sizeof(sign_char));
 
-                printf("Before signed Char : %s|strlen : %ld|size : %ld\n", s_char, strlen(s_char), sizeof(s_char));
                 s_char = bin_to_s_char(tot_line, s_char, sizeof(signed char));
-                printf("After signed Char : %s\n", s_char);
-
                 ascii = bin_to_ascii(tot_line, ascii, sizeof(char));
                 u_char = bin_to_u_char(tot_line, u_char, sizeof(unsigned char));
+                s_int = bin_to_s_int(tot_line, s_int, sizeof(signed int));
 
                 /*
                 int num;
@@ -78,7 +79,7 @@ int main(){
                     printf("Written Failed");
                 }*/
 
-                printf("sign char result : %s\n\n", s_char);
+                printf("int result : %s\n\n", s_int);
 
                 /*printf("Tot line which appended : %s\n", tot_line);
                 fputs(tot_line, output_txt);
@@ -122,7 +123,6 @@ int main(){
         strcat(ascii_rst, "\n");
         memcpy(ascii_rst + strlen(ascii_rst), &null_, 1); // Add null in the last part of string.
         fputs(ascii_rst, output_txt);
-        printf("Finished ASCII part.");
 
         u_char = bin_to_u_char(tot_line, u_char, sizeof(unsigned char)); // Putting Unsigned char into output file.
         reloc_mem_add = realloc(u_char_rst, strlen(u_char_rst) + strlen(u_char) + 1);
@@ -133,6 +133,17 @@ int main(){
         strcat(u_char_rst, "\n");
         memcpy(u_char_rst + strlen(u_char_rst), &null_, 1); // Add null in the last part of string.
         fputs(u_char_rst, output_txt);
+        printf("Finished uchar part.");
+
+        s_int = bin_to_s_int(tot_line, s_int, sizeof(signed int));
+        reloc_mem_add = realloc(s_int_rst, strlen(s_int_rst) + strlen(s_int) + 1);
+        if(reloc_mem_add == NULL)
+            printf("Mem reallocation failed.\n");
+        s_int_rst = reloc_mem_add;
+        strcat(s_int_rst, s_int);
+        strcat(s_int_rst, "\n");
+        memcpy(s_int_rst + strlen(s_int_rst), &null_, 1); // Add null in the last part of string.
+        fputs(s_int_rst, output_txt);
     }
 
     free(s_char); // Free mem space when we allocated above.
@@ -141,5 +152,7 @@ int main(){
     free(ascii_rst);
     free(u_char);
     free(u_char_rst);
+    free(s_int);
+    free(s_int_rst);
     return 0;
 }
