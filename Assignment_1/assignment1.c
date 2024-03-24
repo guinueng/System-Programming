@@ -7,25 +7,25 @@ int main(){
     FILE* input_txt = fopen("input.txt", "r");
     FILE* output_txt = fopen("output_test.txt", "a");
     char *read_line, *tot_line, *result, *reloc_mem_add;
-    char *s_char, *ascii, *u_char, *s_int, *un_int, *sign_float, *sign_double; // We have to save the converted result.
-    char *s_char_rst, *ascii_rst, *u_char_rst, *s_int_rst; // We have to save final result.
+    char *s_char, *ascii, *u_char, *s_int, *u_int, *sign_float, *sign_double; // We have to save the converted result.
+    char *s_char_rst, *ascii_rst, *u_char_rst, *s_int_rst, *u_int_rst; // We have to save final result.
 
     s_char = malloc(16);
     ascii = malloc(16);
     u_char = malloc(16);
     s_int = malloc(4);
+    u_int = malloc(4);
 
     s_char_rst = malloc(14);
     ascii_rst = malloc(14);
     u_char_rst = malloc(16);
     s_int_rst = malloc(13);
+    u_int_rst = malloc(15);
     memcpy(s_char_rst, "Signed Char: ", 13);
     memcpy(ascii_rst, "ASCII Codes: ", 13);
     memcpy(u_char_rst, "Unsigned Char: ", 15);
     memcpy(s_int_rst, "Signed Int: ", 12);
-    
-    //ascii = malloc(17);
-    //fputs("ASCII Codes: ", output_txt);
+    memcpy(u_int_rst, "Unsigned Int: ", 14);
 
     if(input_txt == NULL)
         printf("input.txt does not opened normally.");
@@ -41,7 +41,6 @@ int main(){
             // Repeat when we approach end of file.
             if(*read_line != '\n'){ // If the case that we picked on line is not 'n'
                 if(read_trials != 1){
-                    //printf("Read_trials : %ld\n", read_trials);
                     reloc_mem_add = realloc(tot_line, (read_trials * 64) + 1);
                     if(reloc_mem_add == NULL)
                         printf("Mem reallocation failed.\n");
@@ -53,55 +52,25 @@ int main(){
                 else{
                     tot_line = strcpy(tot_line, read_line); // Copying read_line string into tot_line.
                 }
-                //printf("After strcpy : \nRead line : %s \n Tot line : %s\n", read_line, tot_line);
                 read_trials++;
             }
             else{ // If the case that we picked on line is 'n', we can consider we approached in the final part of the line.
                 // Then we have to consider data as little-endian.
                 printf("%ld th Else\n", trial);
                 printf("tot line : %s\n", tot_line);
-                //size_t line_len = strlen(tot_line);
-                // char *sign_char, *ascii, *un_char, *sign_int, *un_int, *sign_float, *sign_double;
-                //reloc_mem_add = realloc(sign_char, (line_len / 4 / sizeof(signed char)));
-                //printf("%ld", sizeof(sign_char));
 
                 s_char = bin_to_s_char(tot_line, s_char, sizeof(signed char));
                 ascii = bin_to_ascii(tot_line, ascii, sizeof(char));
                 u_char = bin_to_u_char(tot_line, u_char, sizeof(unsigned char));
                 s_int = bin_to_s_int(tot_line, s_int, sizeof(signed int));
+                u_int = bin_to_s_int(tot_line, u_int, sizeof(unsigned int));
 
-                /*
-                int num;
-                if( (num = fputs(ascii, output_txt)) != EOF){
-                    printf("# of written char : %i\n", num);
-                }
-                else{
-                    printf("Written Failed");
-                }*/
+                printf("unsigned int result : %s\n\n", u_int);
 
-                printf("int result : %s\n\n", s_int);
-
-                /*printf("Tot line which appended : %s\n", tot_line);
-                fputs(tot_line, output_txt);
-                free(read_line);
-                free(tot_line);
-                read_line = malloc(65);
-                tot_line = malloc(65);
-                read_trials = 1;
-                printf("Reset\n\n");*/
                 read_trials = 1;
             }
             trial++; // RM when finish.
         }
-        /*printf("Else case\n");
-        printf("Tot line which appended : %s\n", tot_line);
-        fputs(tot_line, output_txt);
-        free(read_line);
-        free(tot_line);
-        read_line = malloc(65);
-        tot_line = malloc(65);
-        read_trials = 1;
-        printf("Reset\n\n");*/
 
         const char null_ = '\0';
         s_char = bin_to_u_char(tot_line, s_char, sizeof(signed char));
@@ -144,6 +113,16 @@ int main(){
         strcat(s_int_rst, "\n");
         memcpy(s_int_rst + strlen(s_int_rst), &null_, 1); // Add null in the last part of string.
         fputs(s_int_rst, output_txt);
+
+        u_int = bin_to_u_int(tot_line, u_int, sizeof(unsigned int));
+        reloc_mem_add = realloc(u_int_rst, strlen(u_int_rst) + strlen(u_int) + 1);
+        if(reloc_mem_add == NULL)
+            printf("Mem reallocation failed.\n");
+        u_int_rst = reloc_mem_add;
+        strcat(u_int_rst, u_int);
+        strcat(u_int_rst, "\n");
+        memcpy(u_int_rst + strlen(u_int_rst), &null_, 1); // Add null in the last part of string.
+        fputs(u_int_rst, output_txt);
     }
 
     free(s_char); // Free mem space when we allocated above.
@@ -154,5 +133,7 @@ int main(){
     free(u_char_rst);
     free(s_int);
     free(s_int_rst);
+    free(u_int);
+    free(u_int_rst);
     return 0;
 }
