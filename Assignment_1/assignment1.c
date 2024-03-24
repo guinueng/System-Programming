@@ -15,10 +15,11 @@ int main(){
     //strcpy(sign_char, "Signed Char: ");
     //unsigned char *sign_char;
     ascii = malloc(17);
+    fputs("ASCII Codes: ", output_txt);
+
     if(input_txt == NULL)
         printf("input.txt does not opened normally.");
     else{
-        fputs("ASCII Codes: ", output_txt);
         size_t read_trials = 1;
         size_t line = 1; // We have to consider which line we get the binaries and how many binaries in that line.
         read_line = malloc(65);
@@ -52,9 +53,16 @@ int main(){
                 //reloc_mem_add = realloc(sign_char, (line_len / 4 / sizeof(signed char)));
                 //printf("%ld", sizeof(sign_char));
                 printf("Before ascii Char : %s|strlen : %ld|size : %ld\n", ascii, strlen(ascii), sizeof(ascii));
-                conv_bin_to_sign_ascii_type(tot_line, ascii, sizeof(char));
-                fputs(ascii, output_txt);
-                printf("ASCII result : %s\n", ascii);
+                ascii = conv_bin_to_sign_ascii_type(tot_line, ascii, sizeof(char));
+                printf("After ascii Char : %s\n", ascii);
+                int num;
+                if( (num = fputs(ascii, output_txt)) != EOF){
+                    printf("# of written char : %i\n", num);
+                }
+                else{
+                    printf("Written Failed");
+                }
+                printf("ASCII result : %s\n\n", ascii);
                 /*printf("Tot line which appended : %s\n", tot_line);
                 fputs(tot_line, output_txt);
                 free(read_line);
