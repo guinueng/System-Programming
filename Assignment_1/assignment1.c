@@ -7,25 +7,28 @@ int main(){
     FILE* input_txt = fopen("input.txt", "r");
     FILE* output_txt = fopen("output_test.txt", "a");
     char *read_line, *tot_line, *result, *reloc_mem_add;
-    char *s_char, *ascii, *u_char, *s_int, *u_int, *sign_float, *sign_double; // We have to save the converted result.
-    char *s_char_rst, *ascii_rst, *u_char_rst, *s_int_rst, *u_int_rst; // We have to save final result.
+    char *s_char, *ascii, *u_char, *s_int, *u_int, *s_float, *sign_double; // We have to save the converted result.
+    char *s_char_rst, *ascii_rst, *u_char_rst, *s_int_rst, *u_int_rst, *s_float_rst; // We have to save final result.
 
     s_char = malloc(16);
     ascii = malloc(16);
     u_char = malloc(16);
     s_int = malloc(4);
     u_int = malloc(4);
+    s_float = malloc(4);
 
     s_char_rst = malloc(14);
     ascii_rst = malloc(14);
     u_char_rst = malloc(16);
     s_int_rst = malloc(13);
     u_int_rst = malloc(15);
+    s_float_rst = malloc(15);
     memcpy(s_char_rst, "Signed Char: ", 13);
     memcpy(ascii_rst, "ASCII Codes: ", 13);
     memcpy(u_char_rst, "Unsigned Char: ", 15);
     memcpy(s_int_rst, "Signed Int: ", 12);
     memcpy(u_int_rst, "Unsigned Int: ", 14);
+    memcpy(s_float_rst, "Signed Float: ", 14);
 
     if(input_txt == NULL)
         printf("input.txt does not opened normally.");
@@ -64,8 +67,9 @@ int main(){
                 u_char = bin_to_u_char(tot_line, u_char, sizeof(unsigned char));
                 s_int = bin_to_s_int(tot_line, s_int, sizeof(signed int));
                 u_int = bin_to_s_int(tot_line, u_int, sizeof(unsigned int));
+                s_float = bin_to_s_int(tot_line, s_float, sizeof(float));
 
-                printf("unsigned int result : %s\n\n", u_int);
+                printf("float result : %s\n\n", s_float);
 
                 read_trials = 1;
             }
@@ -123,6 +127,16 @@ int main(){
         strcat(u_int_rst, "\n");
         memcpy(u_int_rst + strlen(u_int_rst), &null_, 1); // Add null in the last part of string.
         fputs(u_int_rst, output_txt);
+
+        s_float = bin_to_u_int(tot_line, u_int, sizeof(float));
+        reloc_mem_add = realloc(s_float_rst, strlen(s_float_rst) + strlen(s_float) + 1);
+        if(reloc_mem_add == NULL)
+            printf("Mem reallocation failed.\n");
+        s_float_rst = reloc_mem_add;
+        strcat(s_float_rst, s_float);
+        strcat(s_float_rst, "\n");
+        memcpy(s_float_rst + strlen(s_float_rst), &null_, 1); // Add null in the last part of string.
+        fputs(s_float_rst, output_txt);
     }
 
     free(s_char); // Free mem space when we allocated above.
@@ -135,5 +149,7 @@ int main(){
     free(s_int_rst);
     free(u_int);
     free(u_int_rst);
+    free(s_float);
+    free(s_float_rst);
     return 0;
 }

@@ -94,7 +94,6 @@ char* bin_to_u_char(char* bin_line, char* return_line, size_t target_size){
     
     unsigned char tmp[bin_size + 1]; // Make temporary binary store array.
     for(size_t trial = 1; trial <= tot_qty; trial++){
-        //start_pos = strlen(return_line);
         unsigned char result = 0; // Make this to store calculated value.
 
         for(size_t pos = 0; pos < bin_size; pos++){ // Putting partial part of binary array into temporary which we want to calculate.
@@ -170,9 +169,9 @@ char* bin_to_u_int(char* bin_line, char* return_line, size_t target_size){
     size_t tot_qty = line_len / bin_size;
     size_t start_pos = strlen(return_line);
     
-    unsigned int tmp[bin_size + 1]; // Make temporary binary store array.
+    int tmp[bin_size + 1]; // Make temporary binary store array.
     for(size_t trial = 1; trial <= tot_qty; trial++){
-        int result = 0; // Make this to store calculated value.
+        unsigned int result = 0; // Make this to store calculated value.
 
         for(size_t pos = 0; pos < bin_size; pos++){ // Putting partial part of binary array into temporary which we want to calculate.
             size_t margin = (line_len - (bin_size * trial) + pos);
@@ -197,6 +196,65 @@ char* bin_to_u_int(char* bin_line, char* return_line, size_t target_size){
         char blank[2] = {' ', '\0'}; // Making array of blank space and null to input on last part of string.
         memcpy(return_line + reloc_size - 1, &blank, 2); // Copying blank and null into last part of string.
         free(u_int_to_str);
+    }
+    char null_ = '\0';
+    memcpy(return_line + strlen(return_line), &null_, 1); // Add null in the last part of string.
+
+    return return_line; // Returns mem loc. Because when using realloc, mem add may change.
+}
+
+char* bin_to_float(char* bin_line, char* return_line, size_t target_size){
+    size_t line_len = strlen(bin_line);
+    size_t bin_size = 8 * target_size;
+    size_t tot_qty = line_len / bin_size;
+    size_t start_pos = strlen(return_line);
+    
+    int tmp[bin_size + 1]; // Make temporary binary store array.
+    for(size_t trial = 1; trial <= tot_qty; trial++){
+        float result = 0; // Make this to store calculated value.
+
+        for(size_t pos = 0; pos < bin_size; pos++){ // Putting partial part of binary array into temporary which we want to calculate.
+            size_t margin = (line_len - (bin_size * trial) + pos);
+            tmp[pos] = *(bin_line + margin) - 48; // bin is saved as char. ASCII of 0 = 48. Thus we subtract 48 to get int type binary.
+        }
+        tmp[bin_size] = '\0'; // The last part of array should be NULL.
+
+        // Converting binary into float #. By little endian and two's complement, last part of binary array would be determinant of negative.
+        // First bit is sign bit.
+        result = pow((-1), tmp[0]);
+        
+        // Second to 9th bit is notating factor of exponent part.
+        float e_bias = -126; // Think different.
+        for(size_t digit = 9; digit >= 1; digit++){
+            e_bias += ((tmp[digit]) * pow(2, 9 - digit));
+        }
+        printf("e_bias : %f\n", e_bias);
+        result *= pow(2, e_bias);
+
+        // Remaining part is notates mantissa, which XXXXpart of 1.XXXX part. And we can just consider 4 decimals.
+        float mantissa = 0;
+        for(size_t digit = 10; digit < 64; digit++){
+            mantissa += ((tmp[digit]) * pow(2, -(digit - 9)));
+        }
+        printf("mantissa : %.4f", mantissa);
+        result *= pow(2, e_bias);
+        printf("Result : %.4f\n", result);
+
+
+        char *float_to_str;
+        float_to_str = malloc(12); // int range : -2,147,483,648 ~ 2,147,483,647. Thus, maximum 5 location is needed.
+        sprintf(float_to_str, "%.4f", result); // Converting integer value into string.
+
+        int reloc_size = (strlen(return_line) + strlen(float_to_str) + 1);
+        char* return_mem_add = realloc(return_line, reloc_size); // During realloc, mem add can change due to limited size of original mem location.
+        if(return_mem_add == NULL)
+            printf("Mem reallocation failed.\n");
+        return_line = return_mem_add; // Updating mem add because it can vary during realloc.
+
+        memcpy(return_line + strlen(return_line), float_to_str, strlen(float_to_str)); // Copying converted string into return_line string.
+        char blank[2] = {' ', '\0'}; // Making array of blank space and null to input on last part of string.
+        memcpy(return_line + reloc_size - 1, &blank, 2); // Copying blank and null into last part of string.
+        free(float_to_str);
     }
     char null_ = '\0';
     memcpy(return_line + strlen(return_line), &null_, 1); // Add null in the last part of string.
