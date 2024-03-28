@@ -71,8 +71,10 @@ char* bin_to_ascii(char* bin_line, char* return_line, size_t target_size){
 
         for(int digit = bin_size - 1; digit >= 0; digit--) // Converting binary into decimal #.
             result += ((tmp[digit] - 48) * (int)pow(2,bin_size - digit - 1));
-
-        memcpy(return_line + start_pos, &result, sizeof result); // Copying converted string into return_line string.
+        if(result > 31 && result < 127)
+            memcpy(return_line + start_pos, &result, sizeof result); // Copying converted string into return_line string.
+        else
+            memcpy(return_line + start_pos, ".", 1); // Copying converted string into return_line string.
         char blank[2] = {' ', '\0'}; // Making array of blank space and null to input on last part of string.
         memcpy(return_line + strlen(return_line), &blank, 2); // Copying blank and null into last part of string.
     }
@@ -284,7 +286,6 @@ char* bin_to_double(char* bin_line, char* return_line, size_t target_size){
             mantissa += ((tmp[digit]) * pow(2, square));
         }
         result *= mantissa;
-
 
         char *double_to_str;
         double_to_str = malloc(30); // Double range : 2.2250738585072014e-308 ~ 1.7976931348623158e+308. Thus, maximum 5 location is needed.

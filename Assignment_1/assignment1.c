@@ -5,7 +5,7 @@
 
 int main(){
     FILE* input_txt = fopen("input.txt", "r");
-    FILE* output_txt = fopen("output.txt", "a");
+    FILE* output_txt = fopen("output_test.txt", "a");
     char *read_line, *tot_line, *result, *reloc_mem_add;
     char *s_char, *ascii, *u_char, *s_int, *u_int, *s_float, *s_double; // We have to save the converted result.
     char *s_char_rst, *ascii_rst, *u_char_rst, *s_int_rst, *u_int_rst, *s_float_rst, *s_double_rst; // We have to save final result.
@@ -17,7 +17,7 @@ int main(){
     u_int = malloc(4);
     s_float = malloc(4);
     s_double = malloc(4);
-
+    
     s_char_rst = malloc(14); // Allocate mem space for result line.
     ascii_rst = malloc(14);
     u_char_rst = malloc(16);
@@ -65,7 +65,7 @@ int main(){
                 ascii = bin_to_ascii(tot_line, ascii, sizeof(char));
                 u_char = bin_to_u_char(tot_line, u_char, sizeof(unsigned char));
                 s_int = bin_to_s_int(tot_line, s_int, sizeof(signed int));
-                u_int = bin_to_s_int(tot_line, u_int, sizeof(unsigned int));
+                u_int = bin_to_u_int(tot_line, u_int, sizeof(unsigned int));
                 s_float = bin_to_float(tot_line, s_float, sizeof(float));
                 s_double = bin_to_double(tot_line, s_double, sizeof(double));
                 read_trials = 1; // Reset count.
