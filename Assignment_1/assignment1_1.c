@@ -25,12 +25,16 @@ char* bin_to_s_char(char* bin_line, char* return_line, size_t target_size){ // N
         }
         tmp[bin_size] = '\0'; // The last part of array should be NULL.
 
+        printf("read line : %s\n", tmp);
         for(int digit = bin_size - 1; digit >= 0; digit--){ // Converting binary into decimal #. Need to fix it to apply negative value calculation.
-            if(digit != (bin_size - 1))
+            printf("calculating result : %d += ", result);
+            if(digit != 0)
                 result += ((tmp[digit] - 48) * (int)pow(2,bin_size - digit - 1));
             else
                 result -= ((tmp[digit] - 48) * (int)pow(2,bin_size - digit - 1));
+            printf("%d * %d = %d\n", (tmp[digit] - 48), (int)pow(2,bin_size - digit - 1), result);
         }
+        printf("\n");
         char *s_char_to_str;
         s_char_to_str = malloc(5); // Char range : -128 ~ 127. Thus, maximum 5 location is needed.
         sprintf(s_char_to_str, "%d", result); // Converting char's integer value into string.
@@ -179,7 +183,7 @@ char* bin_to_u_int(char* bin_line, char* return_line, size_t target_size){
             result += ((tmp[digit]) * (int)pow(2,bin_size - digit - 1));
         }
         char *u_int_to_str;
-        u_int_to_str = malloc(12); // int range : -2,147,483,648 ~ 2,147,483,647. Thus, maximum 5 location is needed.
+        u_int_to_str = malloc(12); // int range : 0 ~ 4,294,967,295. Thus, maximum 5 location is needed.
         sprintf(u_int_to_str, "%u", result); // Converting integer value into string.
 
         int reloc_size = (strlen(return_line) + strlen(u_int_to_str) + 2);
@@ -233,7 +237,7 @@ char* bin_to_float(char* bin_line, char* return_line, size_t target_size){
 
 
         char *float_to_str;
-        float_to_str = malloc(30); // int range : -2,147,483,648 ~ 2,147,483,647. Thus, maximum 5 location is needed.
+        float_to_str = malloc(30); // float range : 1.175494351e-38 ~ 3.402823466e+38. Thus, maximum 5 location is needed.
         sprintf(float_to_str, "%.4f", result); // Converting integer value into string.
         size_t reloc_size = (strlen(return_line) + strlen(float_to_str) + 2);
         char* return_mem_add = realloc(return_line, reloc_size); // During realloc, mem add can change due to limited size of original mem location.
@@ -286,7 +290,7 @@ char* bin_to_double(char* bin_line, char* return_line, size_t target_size){
 
 
         char *double_to_str;
-        double_to_str = malloc(30); // int range : -2,147,483,648 ~ 2,147,483,647. Thus, maximum 5 location is needed.
+        double_to_str = malloc(30); // Double range : 2.2250738585072014e-308 ~ 1.7976931348623158e+308. Thus, maximum 5 location is needed.
         sprintf(double_to_str, "%.4f", result); // Converting integer value into string.
         size_t reloc_size = (strlen(return_line) + strlen(double_to_str) + 2);
         char* return_mem_add = realloc(return_line, reloc_size); // During realloc, mem add can change due to limited size of original mem location.

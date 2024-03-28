@@ -5,7 +5,7 @@
 
 int main(){
     FILE* input_txt = fopen("input.txt", "r");
-    FILE* output_txt = fopen("output.txt", "a");
+    FILE* output_txt = fopen("output_test.txt", "a");
     char *read_line, *tot_line, *result, *reloc_mem_add;
     char *s_char, *ascii, *u_char, *s_int, *u_int, *s_float, *s_double; // We have to save the converted result.
     char *s_char_rst, *ascii_rst, *u_char_rst, *s_int_rst, *u_int_rst, *s_float_rst, *s_double_rst; // We have to save final result.
@@ -140,8 +140,7 @@ int main(){
             printf("Mem reallocation failed.\n");
         s_double_rst = reloc_mem_add;
         strcat(s_double_rst, s_double);
-        strcat(s_double_rst, "\n");
-        memcpy(s_double_rst + strlen(s_double_rst), &null_, 1);
+        memcpy(s_double_rst + strlen(s_double_rst), &null_, 1); // Last part, we did not output "\n".
         fputs(s_double_rst, output_txt);
     }
 
