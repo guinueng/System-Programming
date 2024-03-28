@@ -25,16 +25,14 @@ char* bin_to_s_char(char* bin_line, char* return_line, size_t target_size){ // N
         }
         tmp[bin_size] = '\0'; // The last part of array should be NULL.
 
-        printf("read line : %s\n", tmp);
         for(int digit = bin_size - 1; digit >= 0; digit--){ // Converting binary into decimal #. Need to fix it to apply negative value calculation.
-            printf("calculating result : %d += ", result);
             if(digit != 0)
                 result += ((tmp[digit] - 48) * (int)pow(2,bin_size - digit - 1));
             else
                 result -= ((tmp[digit] - 48) * (int)pow(2,bin_size - digit - 1));
             printf("%d * %d = %d\n", (tmp[digit] - 48), (int)pow(2,bin_size - digit - 1), result);
         }
-        printf("\n");
+
         char *s_char_to_str;
         s_char_to_str = malloc(5); // Char range : -128 ~ 127. Thus, maximum 5 location is needed.
         sprintf(s_char_to_str, "%d", result); // Converting char's integer value into string.
