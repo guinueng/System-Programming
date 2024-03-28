@@ -30,7 +30,6 @@ char* bin_to_s_char(char* bin_line, char* return_line, size_t target_size){ // N
                 result += ((tmp[digit] - 48) * (int)pow(2,bin_size - digit - 1));
             else
                 result -= ((tmp[digit] - 48) * (int)pow(2,bin_size - digit - 1));
-            printf("%d * %d = %d\n", (tmp[digit] - 48), (int)pow(2,bin_size - digit - 1), result);
         }
 
         char *s_char_to_str;

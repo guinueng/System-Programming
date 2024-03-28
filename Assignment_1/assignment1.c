@@ -102,7 +102,6 @@ int main(){
         strcat(u_char_rst, "\n");
         memcpy(u_char_rst + strlen(u_char_rst), &null_, 1);
         fputs(u_char_rst, output_txt);
-        printf("Finished uchar part.");
 
         s_int = bin_to_s_int(tot_line, s_int, sizeof(signed int)); // Putting Signed int result into output file.
         reloc_mem_add = realloc(s_int_rst, strlen(s_int_rst) + strlen(s_int) + 2);
