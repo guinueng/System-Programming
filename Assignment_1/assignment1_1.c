@@ -1,6 +1,6 @@
 #include <stdio.h> // Use sprintf function for type converting.
-#include <stdlib.h> // Use for malloc / calloc / realloc function.
-#include <string.h> // Use for strlen function.
+#include <stdlib.h> // Use for malloc, calloc, realloc function.
+#include <string.h> // Use for strlen, memcpy function.
 #include <math.h> // Use for pow function.
 #include "assignment1_1.h"
 
@@ -84,7 +84,7 @@ char* bin_to_ascii(char* bin_line, char* return_line, size_t target_size){
     return return_line; // Returns mem loc. Because when using realloc, mem add may change.
 }
 
-char* bin_to_u_char(char* bin_line, char* return_line, size_t target_size){
+char* bin_to_u_char(char* bin_line, char* return_line, size_t target_size){ // Need to mod s_char and u_char.
     size_t line_len = strlen(bin_line);
     size_t bin_size = 8 * target_size;
     size_t tot_qty = line_len / bin_size;
@@ -95,9 +95,9 @@ char* bin_to_u_char(char* bin_line, char* return_line, size_t target_size){
         printf("Mem reallocation failed.\n");
     return_line = return_mem_add; // Updating mem add because it can vary during realloc.
     
-    unsigned char tmp[bin_size + 1]; // Make temporary binary store array.
+    char tmp[bin_size + 1]; // Make temporary binary store array.
     for(size_t trial = 1; trial <= tot_qty; trial++){
-        unsigned char result = 0; // Make this to store calculated value.
+        char result = 0; // Make this to store calculated value.
 
         for(size_t pos = 0; pos < bin_size; pos++){ // Putting partial part of binary array into temporary which we want to calculate.
             size_t margin = (line_len - (bin_size * trial) + pos);
@@ -105,18 +105,20 @@ char* bin_to_u_char(char* bin_line, char* return_line, size_t target_size){
         }
         tmp[bin_size] = '\0'; // The last part of array should be NULL.
 
-        for(int digit = bin_size - 1; digit >= 0; digit--) // Converting binary into decimal #.
+        for(int digit = bin_size - 1; digit >= 0; digit--) // Converting binary into decimal #. Need to fix it to apply negative value calculation.
             result += ((tmp[digit] - 48) * (int)pow(2,bin_size - digit - 1));
 
         char *u_char_to_str;
-        u_char_to_str = malloc(4); // Unsigned char's max value = 255. Thus, maximum 4 location is needed.
-        sprintf(u_char_to_str, "%u", result); // Converting unsigned char's integer value into string.
+        u_char_to_str = malloc(4); // Unsigned char's max value = 255. Thus, maximum 3 location is needed.
+        sprintf(u_char_to_str, "%d", result); // Converting char's integer value into string.
 
         memcpy(return_line + strlen(return_line), u_char_to_str, sizeof(u_char_to_str)); // Copying converted string into return_line string.
         char blank[2] = {' ', '\0'}; // Making array of blank space and null to input on last part of string.
         memcpy(return_line + strlen(return_line), &blank, 2); // Copying blank and null into last part of string.
         free(u_char_to_str);
     }
+    char null_ = '\0';
+    memcpy(return_line + strlen(return_line), &null_, 1); // Add null in the last part of string.
 
     return return_line; // Returns mem loc. Because when using realloc, mem add may change.
 }
