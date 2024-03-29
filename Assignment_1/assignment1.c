@@ -4,8 +4,8 @@
 #include "assignment1_1.h"
 
 int main(){
-    FILE* input_txt = fopen("input.txt", "r");
-    FILE* output_txt = fopen("output.txt", "a");
+    FILE* input_txt = fopen("input_test.txt", "r");
+    FILE* output_txt = fopen("output_test.txt", "w");
     char *read_line, *tot_line, *result, *reloc_mem_add;
     char *s_char, *ascii, *u_char, *s_int, *u_int, *s_float, *s_double; // We have to save the converted result.
     char *s_char_rst, *ascii_rst, *u_char_rst, *s_int_rst, *u_int_rst, *s_float_rst, *s_double_rst; // We have to save final result.
@@ -45,35 +45,21 @@ int main(){
         // and locate memory which have to store whole line's input.
         while( (result = fgets(read_line, 65, input_txt)) != NULL){
             // Repeat when we approach end of file.
-            if(*read_line != '\n'){ // If the case that we picked on line is not 'n'
-                if(read_trials != 1){
-                    reloc_mem_add = realloc(tot_line, (read_trials * 64) + 1);
-                    if(reloc_mem_add == NULL)
-                        printf("Mem reallocation failed.\n");
-                    else{
-                        tot_line = reloc_mem_add;
-                        tot_line = strcat(tot_line, read_line); // Adding two string into tot_line string.
-                    }
-                }
-                else
-                    tot_line = strcpy(tot_line, read_line); // Copying read_line string into tot_line.
-                read_trials++;
-            }
-            else{ // If the case that we picked on line is 'n', we can consider we approached in the final part of the line.
-                // Then we have to consider data as little-endian.
-                s_char = bin_to_s_char(tot_line, s_char, sizeof(signed char));
-                ascii = bin_to_ascii(tot_line, ascii, sizeof(char));
-                u_char = bin_to_u_char(tot_line, u_char, sizeof(unsigned char));
-                s_int = bin_to_s_int(tot_line, s_int, sizeof(signed int));
-                u_int = bin_to_u_int(tot_line, u_int, sizeof(unsigned int));
-                s_float = bin_to_float(tot_line, s_float, sizeof(float));
-                s_double = bin_to_double(tot_line, s_double, sizeof(double));
-                read_trials = 1; // Reset count.
+            if(*read_line != '\n'){ // If the case that we picked on line is not '\n', convert binary into each types.
+                
+                s_char = bin_to_s_char(read_line, s_char, sizeof(signed char));
+                ascii = bin_to_ascii(read_line, ascii, sizeof(char));
+                u_char = bin_to_u_char(read_line, u_char, sizeof(unsigned char));
+                s_int = bin_to_s_int(read_line, s_int, sizeof(signed int));
+                u_int = bin_to_u_int(read_line, u_int, sizeof(unsigned int));
+                s_float = bin_to_float(read_line, s_float, sizeof(float));
+                s_double = bin_to_double(read_line, s_double, sizeof(double));
+
             }
         }
 
         const char null_ = '\0';
-        s_char = bin_to_u_char(tot_line, s_char, sizeof(signed char)); // Putting Signed Char result into output file.
+        // Putting Signed Char result into output file.
         reloc_mem_add = realloc(s_char_rst, strlen(s_char_rst) + strlen(s_char) + 2); // First, due to exception case, last part of calculation did not exec. Thus, we need to exec one more time.
         if(reloc_mem_add == NULL) // Check whether realloc failed or not.
             printf("Mem reallocation failed.\n");
@@ -83,8 +69,7 @@ int main(){
         memcpy(s_char_rst + strlen(s_char_rst), &null_, 1); // Add null in the last part of string.
         fputs(s_char_rst, output_txt); // Put result string into "output.txt".
 
-        ascii = bin_to_ascii(tot_line, ascii, sizeof(char)); // Putting Ascii result into output file.
-        reloc_mem_add = realloc(ascii_rst, strlen(ascii_rst) + strlen(ascii) + 2);
+        reloc_mem_add = realloc(ascii_rst, strlen(ascii_rst) + strlen(ascii) + 2); // Putting Ascii result into output file.
         if(reloc_mem_add == NULL)
             printf("Mem reallocation failed.\n");
         ascii_rst = reloc_mem_add;
@@ -93,18 +78,16 @@ int main(){
         memcpy(ascii_rst + strlen(ascii_rst), &null_, 1); // Add null in the last part of string.
         fputs(ascii_rst, output_txt);
 
-        u_char = bin_to_u_char(tot_line, u_char, sizeof(unsigned char)); // Putting Unsigned char result into output file.
-        reloc_mem_add = realloc(u_char_rst, strlen(u_char_rst) + strlen(u_char) + 2);
+        reloc_mem_add = realloc(u_char_rst, strlen(u_char_rst) + strlen(u_char) + 2); // Putting Unsigned char result into output file.
         if(reloc_mem_add == NULL)
             printf("Mem reallocation failed.\n");
         u_char_rst = reloc_mem_add;
-        strcat(u_char_rst, s_char);
+        strcat(u_char_rst, u_char);
         strcat(u_char_rst, "\n");
         memcpy(u_char_rst + strlen(u_char_rst), &null_, 1);
         fputs(u_char_rst, output_txt);
 
-        s_int = bin_to_s_int(tot_line, s_int, sizeof(signed int)); // Putting Signed int result into output file.
-        reloc_mem_add = realloc(s_int_rst, strlen(s_int_rst) + strlen(s_int) + 2);
+        reloc_mem_add = realloc(s_int_rst, strlen(s_int_rst) + strlen(s_int) + 2); // Putting Signed int result into output file.
         if(reloc_mem_add == NULL)
             printf("Mem reallocation failed.\n");
         s_int_rst = reloc_mem_add;
@@ -113,8 +96,7 @@ int main(){
         memcpy(s_int_rst + strlen(s_int_rst), &null_, 1);
         fputs(s_int_rst, output_txt);
 
-        u_int = bin_to_u_int(tot_line, u_int, sizeof(unsigned int)); // Putting Unsigned int result into output file.
-        reloc_mem_add = realloc(u_int_rst, strlen(u_int_rst) + strlen(u_int) + 2);
+        reloc_mem_add = realloc(u_int_rst, strlen(u_int_rst) + strlen(u_int) + 2); // Putting Unsigned int result into output file.
         if(reloc_mem_add == NULL)
             printf("Mem reallocation failed.\n");
         u_int_rst = reloc_mem_add;
@@ -122,9 +104,8 @@ int main(){
         strcat(u_int_rst, "\n");
         memcpy(u_int_rst + strlen(u_int_rst), &null_, 1);
         fputs(u_int_rst, output_txt);
-
-        s_float = bin_to_float(tot_line, s_float, sizeof(float)); // Putting Float result into output file.
-        reloc_mem_add = realloc(s_float_rst, strlen(s_float_rst) + strlen(s_float) + 2);
+        
+        reloc_mem_add = realloc(s_float_rst, strlen(s_float_rst) + strlen(s_float) + 2); // Putting Float result into output file.
         if(reloc_mem_add == NULL)
             printf("Mem reallocation failed.\n");
         s_float_rst = reloc_mem_add;
@@ -132,9 +113,8 @@ int main(){
         strcat(s_float_rst, "\n");
         memcpy(s_float_rst + strlen(s_float_rst), &null_, 1);
         fputs(s_float_rst, output_txt);
-
-        s_double = bin_to_double(tot_line, s_double, sizeof(double)); // Putting Double result into output file.
-        reloc_mem_add = realloc(s_double_rst, strlen(s_double_rst) + strlen(s_double) + 2);
+        
+        reloc_mem_add = realloc(s_double_rst, strlen(s_double_rst) + strlen(s_double) + 2); // Putting Double result into output file.
         if(reloc_mem_add == NULL)
             printf("Mem reallocation failed.\n");
         s_double_rst = reloc_mem_add;
