@@ -204,10 +204,10 @@ void print_section_headers(int32_t fd, Elf64_Ehdr eh, Elf64_Shdr sh_table[])
 	}
 
 	/* section-header string-table */
-	sh_str = read_section(fd, sh_table[eh.e_shstrndx]);
+	sh_str = read_section(fd, sh_table[eh.e_shstrndx]); // Get entire string of section header string table.
 
 	for(i=0; i<eh.e_shnum; i++) {
-		if(!strncmp((sh_str + sh_table[i].sh_name), ".rodata", 7))
+		if(!strncmp((sh_str + sh_table[i].sh_name), ".rodata", 7)) // Print out section header name by using section header string and offset of name.
 		{
 			printf("%s section info\n", (sh_str + sh_table[i].sh_name));
 			printf("    file offset = 0x%08lx\n", sh_table[i].sh_offset);
@@ -225,6 +225,7 @@ void conv_rodata(int32_t fd, Elf64_Ehdr eh, Elf64_Shdr sh_table[]){
 
 	for( i=0; i < eh.e_shnum; i++ )
 		assert(read(fd, (void *)&sh_table[i], eh.e_shentsize) == eh.e_shentsize); // Read each type's section header.
+
 		// assert() is function which returns stderr when content inside is false. If inside is true, then nothing happens.
 		// read function w/ option of (int fd, void *buf, size_t n_bytes) reads data in fd, store data in buf, and reads n_bytes.
 		// above, it reads fd, stores in sh_table(and using type conversion and & to give address of target array), and read section header's entire size by using eh.e_shentsize.
@@ -247,29 +248,64 @@ void conv_rodata(int32_t fd, Elf64_Ehdr eh, Elf64_Shdr sh_table[]){
 			printf("\n    file offset = 0x%08lx\n", offset_add);
 			printf("           size = 0x%08lx\n", data_size);
 
-			char* rodata_tmp = malloc( data_size );
-			if( !rodata_tmp ) {
+			char rodata_tmp[data_size];
+			/*if( !rodata_tmp ) {
 				printf("%s:Failed to allocate %ldbytes\n",
 						__func__, data_size);
 			}
+			*/
 			assert( rodata_tmp != NULL );
 			assert( lseek( fd, (off_t)sh_table[i].sh_offset, SEEK_SET ) == (off_t)sh_table[i].sh_offset ); // Set file's starting position as .rodata's start position.
-			assert( read( fd, (void*)rodata_tmp, data_size ) == data_size ); // Assuming that there's something error to get rodata value into string*.
+			//assert( read( fd, (void*)rodata_tmp, data_size ) == data_size ); // Assuming that there's something error to get rodata value into string*.
+			//lseek( fd, 0x99408, SEEK_SET );
+			char tmp;
+			size_t string_start_offset = 0;
 
-			for(size_t j = 0; j < 1000; j++)
-				printf("%x ", (rodata_tmp[i]));
-			printf("\n");
-			printf("|%s|\n", rodata_tmp);
+			while(1){
+				read(fd, (void*)&tmp, 1);
+				printf("TMP : |%x|, offset : %lx\n", tmp, string_start_offset);
+				if(tmp > 0x19 && tmp < 0x127 && string_start_offset < data_size){
+				//if(tmp != 0){
+					printf("Character!\n");
+					printf("String start offset : %ld\n", string_start_offset);
+					off_t start_pos = (off_t)sh_table[i].sh_offset + string_start_offset;
+					assert( lseek( fd, start_pos, SEEK_SET ) == start_pos );
+					long size = read( fd, (void*)rodata_tmp, (data_size - string_start_offset) );
+					printf("Size : %ld, Offset : %lx, String len : %lx\n\n", size, start_pos, strlen(rodata_tmp));
 
-			char* target_str = strstr( (sh_str + sh_table[i].sh_addr), "rodata rodata rodata Can you modify this?" );
+					for(size_t j = 0; j < 42; j++)
+						printf("%x ", (rodata_tmp[i]));
+					printf("\n");
+					printf("|%s|\n", rodata_tmp);
 
-			printf("|%s|\n", rodata_tmp);
-			printf("|%s|\n", target_str);
-			if( target_str != NULL )
-				printf("Found it\n");
-			else
-				printf("Not found\n");
+					char* target_str = strstr( rodata_tmp, "rodata rodata rodata Can you modify this?" );
 
+					printf("|%s|\n", rodata_tmp);
+					printf("|%s|\n", target_str);
+
+					if(start_pos > 0x98B00){
+						printf("Result Must be occur before\n");
+						break;
+					}
+
+					if( target_str != NULL ){
+						printf("Found it\n");
+						break;
+					}
+					else
+						printf("Not found\n");
+					string_start_offset += strlen(rodata_tmp);
+					printf("Next start offset : %lx, start pos : %lx\n", string_start_offset, (off_t)sh_table[i].sh_offset + string_start_offset);
+					assert( lseek( fd, (off_t)sh_table[i].sh_offset + string_start_offset, SEEK_SET ) == (off_t)sh_table[i].sh_offset + string_start_offset );
+				}
+				else if(string_start_offset > data_size){
+					printf("Not found.\n");
+					break;
+				}
+				else
+					string_start_offset++;
+			}
+			printf("Done!\n");
 			break;
 		}
 	}

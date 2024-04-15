@@ -9,7 +9,7 @@ int32_t main(int32_t argc, char *argv[])
 		return 0;
 	}
 
-	fd = open(argv[1], O_RDONLY|O_SYNC);
+	fd = open(argv[1], O_RDWR|O_SYNC);
 	if(fd<0) { // Case 0 - 2 ) If can't open file.
 		printf("Error %d Unable to open %s\n", fd, argv[1]);
 		return 0;
