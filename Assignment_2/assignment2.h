@@ -236,6 +236,10 @@ void conv_rodata(int32_t fd, Elf64_Ehdr eh, Elf64_Shdr sh_table[]){
 
 	for( i = 0; i < eh.e_shnum; i++ ){
 		printf("%dth :\t|%s|\n", i, sh_str + sh_table[i].sh_name);
+		printf("    file offset = 0x%08lx\n", sh_table[i].sh_offset);
+		printf("           size = 0x%08lx\n", sh_table[i].sh_size);
+		printf("           type = %d\n", sh_table[i].sh_type);
+
 		if( !strncmp( (sh_str + sh_table[i].sh_name), ".rodata", 7 ) ){
 			long offset_add = sh_table[i].sh_offset;
 			long data_size = sh_table[i].sh_size;
@@ -243,17 +247,21 @@ void conv_rodata(int32_t fd, Elf64_Ehdr eh, Elf64_Shdr sh_table[]){
 			printf("\n    file offset = 0x%08lx\n", offset_add);
 			printf("           size = 0x%08lx\n", data_size);
 
-			char* rodata_tmp = malloc(data_size);
-			if(!rodata_tmp) {
+			char* rodata_tmp = malloc( data_size );
+			if( !rodata_tmp ) {
 				printf("%s:Failed to allocate %ldbytes\n",
 						__func__, data_size);
 			}
 			assert( rodata_tmp != NULL );
-			assert( lseek( fd, (off_t)offset_add, SEEK_SET ) == (off_t)offset_add );
-			assert( read( fd, (void*)rodata_tmp, data_size ) == data_size );
-			
+			assert( lseek( fd, (off_t)sh_table[i].sh_offset, SEEK_SET ) == (off_t)sh_table[i].sh_offset ); // Set file's starting position as .rodata's start position.
+			assert( read( fd, (void*)rodata_tmp, data_size ) == data_size ); // Assuming that there's something error to get rodata value into string*.
 
-			char* target_str = strstr( rodata_tmp, "rodata rodata rodata Can you modify this?" );
+			for(size_t j = 0; j < 1000; j++)
+				printf("%x ", (rodata_tmp[i]));
+			printf("\n");
+			printf("|%s|\n", rodata_tmp);
+
+			char* target_str = strstr( (sh_str + sh_table[i].sh_addr), "rodata rodata rodata Can you modify this?" );
 
 			printf("|%s|\n", rodata_tmp);
 			printf("|%s|\n", target_str);
