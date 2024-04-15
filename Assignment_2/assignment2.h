@@ -200,7 +200,7 @@ void print_section_headers(int32_t fd, Elf64_Ehdr eh, Elf64_Shdr sh_table[])
 	assert(lseek(fd, (off_t)eh.e_shoff, SEEK_SET) == (off_t)eh.e_shoff);
 
 	for(i=0; i<eh.e_shnum; i++) {
-		assert(read(fd, (void *)&sh_table[i], eh.e_shentsize) == eh.e_shentsize);
+		assert(read(fd, (void *)&sh_table[i], eh.e_shentsize) == eh.e_shentsize); // Read each type's section header.
 	}
 
 	/* section-header string-table */
@@ -212,6 +212,57 @@ void print_section_headers(int32_t fd, Elf64_Ehdr eh, Elf64_Shdr sh_table[])
 			printf("%s section info\n", (sh_str + sh_table[i].sh_name));
 			printf("    file offset = 0x%08lx\n", sh_table[i].sh_offset);
 			printf("           size = 0x%08lx\n", sh_table[i].sh_size);
+		}
+	}
+
+}
+
+void conv_rodata(int32_t fd, Elf64_Ehdr eh, Elf64_Shdr sh_table[]){
+	uint32_t i;
+	char* sh_str;
+
+	assert(lseek(fd, (off_t)eh.e_shoff, SEEK_SET) == (off_t)eh.e_shoff); // Check start position of section header table is exist.
+
+	for( i=0; i < eh.e_shnum; i++ )
+		assert(read(fd, (void *)&sh_table[i], eh.e_shentsize) == eh.e_shentsize); // Read each type's section header.
+		// assert() is function which returns stderr when content inside is false. If inside is true, then nothing happens.
+		// read function w/ option of (int fd, void *buf, size_t n_bytes) reads data in fd, store data in buf, and reads n_bytes.
+		// above, it reads fd, stores in sh_table(and using type conversion and & to give address of target array), and read section header's entire size by using eh.e_shentsize.
+		// Also, due to lseek above, starting position of reading is offset of starting position of section header.
+		// Comparing read position is same as e_shentsize(abbreviate of Elf_Section_Header_Entity_Size and it is field name) position inside of ELF header.
+
+	/* section-header string-table */
+	sh_str = read_section(fd, sh_table[eh.e_shstrndx]);
+
+	for( i = 0; i < eh.e_shnum; i++ ){
+		printf("%dth :\t|%s|\n", i, sh_str + sh_table[i].sh_name);
+		if( !strncmp( (sh_str + sh_table[i].sh_name), ".rodata", 7 ) ){
+			long offset_add = sh_table[i].sh_offset;
+			long data_size = sh_table[i].sh_size;
+
+			printf("\n    file offset = 0x%08lx\n", offset_add);
+			printf("           size = 0x%08lx\n", data_size);
+
+			char* rodata_tmp = malloc(data_size);
+			if(!rodata_tmp) {
+				printf("%s:Failed to allocate %ldbytes\n",
+						__func__, data_size);
+			}
+			assert( rodata_tmp != NULL );
+			assert( lseek( fd, (off_t)offset_add, SEEK_SET ) == (off_t)offset_add );
+			assert( read( fd, (void*)rodata_tmp, data_size ) == data_size );
+			
+
+			char* target_str = strstr( rodata_tmp, "rodata rodata rodata Can you modify this?" );
+
+			printf("|%s|\n", rodata_tmp);
+			printf("|%s|\n", target_str);
+			if( target_str != NULL )
+				printf("Found it\n");
+			else
+				printf("Not found\n");
+
+			break;
 		}
 	}
 

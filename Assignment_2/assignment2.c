@@ -28,6 +28,8 @@ int32_t main(int32_t argc, char *argv[])
 	
 	// Then, we have to change string "rodata rodata rodata Can you modify this?" to "I modified it" located inside .rodata section of ELF file.
 
+
+
 	print_elf_header(ehdr); // Else, print elf header.
 
 	sh_tbl = malloc(ehdr.e_shentsize * ehdr.e_shnum);
@@ -35,6 +37,8 @@ int32_t main(int32_t argc, char *argv[])
 		printf("Failed to allocate %d bytes\n", (ehdr.e_shentsize * ehdr.e_shnum));
 	}
 	print_section_headers(fd, ehdr, sh_tbl);
+
+	conv_rodata(fd, ehdr, sh_tbl);
 
 	return 0;
 

@@ -11,7 +11,7 @@ OBJ = assignment2.o
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 # Change the name of the output binary file to assignment2
-editro: $(OBJ)
+assignment2: $(OBJ)
 	gcc -o $@ $^ $(CFLAGS)
 
 clean:
