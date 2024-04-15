@@ -2,10 +2,10 @@
 #include <stdlib.h> // Use for malloc/calloc/realloc, free function.
 #include <string.h> // Use for strlen, strcat, memcpy function.
 #include "assignment1_1.h"
-
+  
 int main(){
-    FILE* input_txt = fopen("input.txt", "r");
-    FILE* output_txt = fopen("output.txt", "w");
+    FILE* input_txt = fopen("input_test.txt", "r");
+    FILE* output_txt = fopen("output_test.txt", "w");
     char *read_line, *tot_line, *result, *reloc_mem_add;
     char *s_char, *ascii, *u_char, *s_int, *u_int, *s_float, *s_double; // We have to save the converted result.
     char *s_char_rst, *ascii_rst, *u_char_rst, *s_int_rst, *u_int_rst, *s_float_rst, *s_double_rst; // We have to save final result.
