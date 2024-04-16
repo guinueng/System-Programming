@@ -236,53 +236,30 @@ void conv_rodata(int32_t fd, Elf64_Ehdr eh, Elf64_Shdr sh_table[]){
 	sh_str = read_section(fd, sh_table[eh.e_shstrndx]);
 
 	for( i = 0; i < eh.e_shnum; i++ ){
-		printf("%dth :\t|%s|\n", i, sh_str + sh_table[i].sh_name);
-		printf("    file offset = 0x%08lx\n", sh_table[i].sh_offset);
-		printf("           size = 0x%08lx\n", sh_table[i].sh_size);
-		printf("           type = %d\n", sh_table[i].sh_type);
 
 		if( !strncmp( (sh_str + sh_table[i].sh_name), ".rodata", 7 ) ){
-			long offset_add = sh_table[i].sh_offset;
 			long data_size = sh_table[i].sh_size;
 
-			printf("\n    file offset = 0x%08lx\n", offset_add);
-			printf("           size = 0x%08lx\n", data_size);
-
 			char rodata_tmp[data_size];
-			/*if( !rodata_tmp ) {
-				printf("%s:Failed to allocate %ldbytes\n",
-						__func__, data_size);
-			}
-			*/
 			assert( rodata_tmp != NULL );
 			assert( lseek( fd, (off_t)sh_table[i].sh_offset, SEEK_SET ) == (off_t)sh_table[i].sh_offset ); // Set file's starting position as .rodata's start position.
-			//assert( read( fd, (void*)rodata_tmp, data_size ) == data_size ); // Assuming that there's something error to get rodata value into string*.
-			//lseek( fd, 0x99408, SEEK_SET );
+
 			char tmp;
 			size_t string_start_offset = 0;
 
 			while(1){
-				read(fd, (void*)&tmp, 1); // Read one value to find current position has characters.
-				printf("TMP : |%x|, offset : %lx\n", tmp, string_start_offset);
-				if(tmp > 0x19 && tmp < 0x127 && string_start_offset < data_size){ // If read value has character property, exec below step.
-					printf("Character!\n");
-					printf("String start offset : %ld\n", string_start_offset);
+				assert( lseek( fd, (off_t)sh_table[i].sh_offset + string_start_offset, SEEK_SET ) == (off_t)sh_table[i].sh_offset + string_start_offset );
+				// Re define starting position of file descriptor as next position of final part of current string.
+				read( fd, (void*)&tmp, 1 ); // Read one value to find current position has characters.
+
+				if( tmp > 0x19 && tmp < 0x127 && string_start_offset < data_size ){ // Check if read value has character property and if it occurs, exec below step.
 					off_t start_pos = (off_t)sh_table[i].sh_offset + string_start_offset; // Defining starting position's offset by adding start position of current section and calculated offset.
 					assert( lseek( fd, start_pos, SEEK_SET ) == start_pos ); // Set starting postion.
-					assert( read( fd, (void*)rodata_tmp, (data_size - string_start_offset) ) ); // Read entire file froms tarting pos to end of current section.
-
-					for(size_t j = 0; j < 42; j++)
-						printf("%x ", (rodata_tmp[i]));
-					printf("\n");
-					printf("|%s|\n", rodata_tmp);
+					assert( read( fd, (void*)rodata_tmp, ( data_size - string_start_offset ) ) ); // Read entire file froms tarting pos to end of current section.
 
 					char* target_str = strstr( rodata_tmp, "rodata rodata rodata Can you modify this?" ); // Then, find if "rodata rodata rodata Can you modify this?" exist in current string.
 
-					printf("|%s|\n", rodata_tmp);
-					printf("|%s|\n", target_str);
-
-					if( target_str != NULL ){ // If we found right one,
-						printf("Found it\n"); // Fix it.
+					if( target_str != NULL ){ // If we found right one, Fix it.
 						assert( lseek( fd, start_pos, SEEK_SET ) == start_pos ); // Define start pos of fd as first position of string.
 						assert( write( fd, "I modified it", 13 ) == 13 );
 						for(size_t j = 0; j < strlen(rodata_tmp) - 13; j++)
@@ -292,18 +269,13 @@ void conv_rodata(int32_t fd, Elf64_Ehdr eh, Elf64_Shdr sh_table[]){
 
 					// Else, keep going to found next string.
 					string_start_offset += strlen(rodata_tmp); // Calculate next starting offset.
-					printf("Next start offset : %lx, start pos : %lx\n", string_start_offset, (off_t)sh_table[i].sh_offset + string_start_offset);
-					assert( lseek( fd, (off_t)sh_table[i].sh_offset + string_start_offset, SEEK_SET ) == (off_t)sh_table[i].sh_offset + string_start_offset );
-					// Re define starting position of file descriptor as next position of final part of current string.
 				}
-				else if(string_start_offset > data_size){
-					printf("Not found.\n");
+				else if( string_start_offset > data_size )
 					break;
-				}
 				else
 					string_start_offset++;
 			}
-			printf("Done!\n");
+
 			break;
 		}
 	}

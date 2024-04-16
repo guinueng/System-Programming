@@ -9,7 +9,7 @@ int32_t main(int32_t argc, char *argv[])
 		return 0;
 	}
 
-	fd = open(argv[1], O_RDWR|O_SYNC);
+	fd = open(argv[1], O_RDWR|O_SYNC); // Changed O_RDONLY to O_RDWR cause we have to modify elf file.
 	if(fd<0) { // Case 0 - 2 ) If can't open file.
 		printf("Error %d Unable to open %s\n", fd, argv[1]);
 		return 0;
@@ -28,19 +28,16 @@ int32_t main(int32_t argc, char *argv[])
 	
 	// Then, we have to change string "rodata rodata rodata Can you modify this?" to "I modified it" located inside .rodata section of ELF file.
 
-
-
-	print_elf_header(ehdr); // Else, print elf header.
+	//print_elf_header(ehdr); Commented given function due to un-use.
 
 	sh_tbl = malloc(ehdr.e_shentsize * ehdr.e_shnum);
 	if(!sh_tbl) {
 		printf("Failed to allocate %d bytes\n", (ehdr.e_shentsize * ehdr.e_shnum));
 	}
-	print_section_headers(fd, ehdr, sh_tbl);
+	//print_section_headers(fd, ehdr, sh_tbl); Commented given function due to un-use.
 
-	conv_rodata(fd, ehdr, sh_tbl);
+	conv_rodata( fd, ehdr, sh_tbl );
 
 	return 0;
-
 }
 
