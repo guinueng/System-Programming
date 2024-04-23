@@ -262,9 +262,7 @@ void conv_rodata(int32_t fd, Elf64_Ehdr eh, Elf64_Shdr sh_table[]){
 					if( target_str != NULL ){ // If we found right one, Fix it.
 						assert( lseek( fd, start_pos, SEEK_SET ) == start_pos ); // Define start pos of fd as first position of string.
 						assert( write( fd, "I modified it", 13 ) == 13 );
-						for(size_t j = 0; j < strlen(rodata_tmp) - 13; j++)
-							assert( write( fd, "\0", 1 ) == 1 );
-						break;
+						assert( write( fd, "\0", 1 ) == 1 );
 					}
 
 					// Else, keep going to found next string.
