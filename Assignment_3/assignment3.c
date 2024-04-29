@@ -25,7 +25,7 @@ int main(int argc, char* argv[]){
     for(size_t i = 1; i < p_n; i++){
         pid = fork();
 
-        if(pid == 0){
+        if(pid == 0 && i != p_n - 1){
             //printf("I'm child!\n");
         }
         else if(pid != 0){
@@ -37,16 +37,18 @@ int main(int argc, char* argv[]){
             break;
         }
         else{
-            //printf("I'm last.\n");
+            printf("I'm last.\n");
             c_pid = getpid();
-            c_n = i;
+            c_n = i + 1;
             printf("%dth pid : %d\n", c_n, c_pid);
             pid_t a = wait('\0');
             break;
         }
     }
 
+    printf("\n");
 
     printf("%dth program has PID : %d\n", c_n, c_pid);
 
+    return 0;
 }
