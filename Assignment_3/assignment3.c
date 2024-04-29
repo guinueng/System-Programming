@@ -1,7 +1,7 @@
 #include <stdio.h> // To use printf and other function.
 #include <assert.h> // To use assert function.
 #include <unistd.h> // To use pid.
-#include <stdlib.h> // To use atoi function to change char* to int.
+#include <stdlib.h> // To use malloc, atoi function to change char* to int.
 #include <sys/wait.h> // To use wait function.
 #include <signal.h>
 
@@ -29,11 +29,6 @@ int main(int argc, char* argv[]){
             pipe(pipe_fd_even);
         else
             pipe(pipe_fd_odd);
-        if(i == 0){
-            tmp = 1;
-            write(pipe_fd_even[1], &tmp, sizeof(tmp));
-            tmp = 0;
-        }
         pid = fork();
 
         if(pid == 0 && i == p_n - 2){
@@ -48,6 +43,7 @@ int main(int argc, char* argv[]){
             c_pid = getpid();
             c_n = i + 1;
             printf("%dth pid : %d\n", c_n, c_pid);
+            tmp = 1;
             write(pipe_init[1], &tmp, sizeof(tmp));
         }
         else if(pid != 0){
@@ -97,7 +93,6 @@ int main(int argc, char* argv[]){
 
     printf("Next # : %d\n", n_t);
 
-    
     while(1){
         if(c_n != 0){
             if(c_n % 2 == 0) // Process order is even.
@@ -107,22 +102,27 @@ int main(int argc, char* argv[]){
         }
         else
             read(pipe_init[0], &tmp, sizeof(tmp));
+
         printf("C_n : %d\tRead val : %d\n", c_n, tmp);
 
         if(tmp == 1){
-            c_n++;
             printf("%dth program has PID : %d\n", c_n, c_pid);
             char* result;
             char* read_line;
-            if( ( result = fgets(read_line, 65, file) ) != NULL ){
+            read_line = malloc(65);
+            result = fgets(read_line, 65, file);
+            printf("%d %d |%s|\n", c_pid, c_n, read_line);
+            printf("Exec\n");
+            free(read_line);
+            printf("exec\n");
+            if( result != NULL ){
                 printf("%d %d %s\n", c_pid, c_n, read_line);
                 if(c_n == p_n - 1)
                     write(pipe_init[1], &tmp, sizeof(tmp));
                 else if(c_n % 2 == 0) // Process order is even.
-                    write(pipe_fd_odd[1], &tmp, sizeof(tmp));
-                else // Process order is odd.
                     write(pipe_fd_even[1], &tmp, sizeof(tmp));
-
+                else // Process order is odd.
+                    write(pipe_fd_odd[1], &tmp, sizeof(tmp));
             }
             else{
                 printf("%d Read all data\n", c_pid);
@@ -130,10 +130,11 @@ int main(int argc, char* argv[]){
                 if(c_n == p_n - 1)
                     write(pipe_init[1], &sig, sizeof(sig));
                 else if(c_n % 2 == 0) // Process order is even.
-                    write(pipe_fd_odd[1], &sig, sizeof(sig));
-                else // Process order is odd.
                     write(pipe_fd_even[1], &sig, sizeof(sig));
+                else // Process order is odd.
+                    write(pipe_fd_odd[1], &sig, sizeof(sig));
             }
+            
         }
         else if(tmp == -1){ // Finishing job.
             if(c_n == p_n - 1)
@@ -152,46 +153,5 @@ int main(int argc, char* argv[]){
         }
     }
 
-    //printf("%dth program has PID : %d\n", c_n, c_pid);
-
-    /*
-
-    while(1){
-        printf("%dth program has PID : %d\n", c_n, c_pid);
-        int n;
-        read(pipe_fd[0], &n, sizeof(n));
-        printf("pipe pos : %d\nc_n : %d\n", n, c_n);
-        if( n % p_n == c_n ){
-            printf("%d program printed %dth line.\n", c_n, pos);
-            char read_line[65];
-            char* result;
-            if( ( result = fgets(read_line, 65, file) ) != NULL ){
-                printf("%d %d %s | %dth line\n", c_pid, c_n, read_line, n);
-                n++;
-                write(pipe_fd[0], &n, sizeof(n));
-                printf("Read one line.\n");
-            }
-            else{
-                printf("%d %d Read all data\n", c_pid, c_n);
-            }
-        }
-
-        else{
-            write(pipe_fd[1], &n, sizeof(n));
-            //read(pipe_fd[0], &n, sizeof(n));
-            while( n % p_n != c_n ){
-                printf("Pause\n");
-                //execl();
-                pause();
-            }
-        }
-
-        printf("Idontknow\n");
-
-        if(n > 6)
-            break;
-    }
-
-    */
     return 0;
 }
