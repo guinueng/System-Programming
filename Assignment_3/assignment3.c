@@ -13,23 +13,32 @@ int main(int argc, char* argv[]){
 
     assert( p_n < 17 || p_n > 3 );
 
-    int pipe_fd[2], c_n = 0;
-    pipe(pipe_fd);
-
+    int c_n = 0, pos = 1;
+    
     printf("p_n : %d\n", p_n);
 
     pid_t c_pid, pid;
 
     printf("original PID : %d\n", getpid());
 
-    for(size_t i = 1; i < p_n; i++){
+    int pipe_fd[2];
+    for(size_t i = 0; i < p_n - 1; i++){
+        pipe(pipe_fd);
+        write(pipe_fd[1], &pos, sizeof(pos));
         pid = fork();
 
-        if(pid == 0 && i != p_n - 1){
-            //printf("I'm child!\n");
+        if(pid == 0 && i == p_n - 2){
+            // Case for the last one. Does not need to make other child process. Thus finish exec.
+            close(pipe_fd[1]);
+            c_pid = getpid();
+            c_n = i + 1;
+            printf("%dth pid : %d\n", c_n, c_pid);
+            //pid_t a = wait('\0');
+            //break;
         }
         else if(pid != 0){
-            //printf("I'm parent.\n");
+            // Parent case. Get pid number and current executed trial number and store it. Then wait until all child process is made.
+            close(pipe_fd[0]);
             c_pid = getpid();
             c_n = i;
             printf("%dth pid : %d\n", c_n, c_pid);
@@ -37,18 +46,29 @@ int main(int argc, char* argv[]){
             break;
         }
         else{
-            printf("I'm last.\n");
-            c_pid = getpid();
-            c_n = i + 1;
-            printf("%dth pid : %d\n", c_n, c_pid);
-            pid_t a = wait('\0');
-            break;
+            close(pipe_fd[1]);
         }
+        // The other case is child case. So we do not need to consider cause it locates inside of for loop.
     }
 
     printf("\n");
-
     printf("%dth program has PID : %d\n", c_n, c_pid);
+
+    while(1){
+        read(pipe_fd[0], &pos, sizeof(pos));
+        if(pos != EOF){
+            printf("%d program calced %dth line.\n", c_n, pos);
+            pos = 1;
+            write(pipe_fd[1], &pos, sizeof(pos));
+        }
+        else{
+
+        }
+
+        if(pos == 10)
+            break;
+    }
+
 
     return 0;
 }
