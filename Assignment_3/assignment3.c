@@ -3,11 +3,13 @@
 #include <unistd.h> // To use pid.
 #include <stdlib.h> // To use malloc, atoi function to change char* to int.
 #include <sys/wait.h> // To use wait function.
-#include <signal.h>
+#include <string.h>
+#include <fcntl.h> // To use open func.
 
 int main(int argc, char* argv[]){
     assert( argc == 3 ); // Exec only input val on cmd is 3.
     FILE* file = fopen(argv[1], "r");
+    int fd = open(argv[1], O_RDONLY|O_SYNC);
     size_t p_n = atoi(argv[2]);
 
     assert( p_n < 17 || p_n > 3 );
@@ -110,12 +112,21 @@ int main(int argc, char* argv[]){
             char* result;
             char* read_line;
             read_line = malloc(65);
-            result = fgets(read_line, 65, file);
+            size_t indicator = 0;
+            //result = fgets(read_line, 65, file); // how to approach open and read?
+            for(size_t i = 0; i < 65; i++){
+                indicator = read(fd, &read_line[i], 1);
+                if(indicator == -1)
+                    break;
+                if(read_line[i] == '\n'){
+                    indicator = 1;
+                    break;
+                }
+            }
+            printf("strlen : %d, sizeof : %d\n",strlen(read_line), sizeof(read_line) / sizeof(char));
             printf("%d %d |%s|\n", c_pid, c_n, read_line);
-            printf("Exec\n");
-            free(read_line);
-            printf("exec\n");
-            if( result != NULL ){
+            //if( result != NULL ){
+            if( indicator == 1 ){
                 printf("%d %d %s\n", c_pid, c_n, read_line);
                 if(c_n == p_n - 1)
                     write(pipe_init[1], &tmp, sizeof(tmp));
@@ -125,7 +136,7 @@ int main(int argc, char* argv[]){
                     write(pipe_fd_odd[1], &tmp, sizeof(tmp));
             }
             else{
-                printf("%d Read all data\n", c_pid);
+                printf("%dth process Read all data\n", c_pid);
                 int sig = -1;
                 if(c_n == p_n - 1)
                     write(pipe_init[1], &sig, sizeof(sig));
@@ -135,11 +146,20 @@ int main(int argc, char* argv[]){
                     write(pipe_fd_odd[1], &sig, sizeof(sig));
             }
             
+            free(read_line);
+            printf("exec\n");
         }
         else if(tmp == -1){ // Finishing job.
             if(c_n == p_n - 1)
                 break;
             else{
+                int sig = -1;
+                if(c_n == p_n - 1)
+                    write(pipe_init[1], &sig, sizeof(sig));
+                else if(c_n % 2 == 0) // Process order is even.
+                    write(pipe_fd_even[1], &sig, sizeof(sig));
+                else // Process order is odd.
+                    write(pipe_fd_odd[1], &sig, sizeof(sig));
                 wait(NULL);
                 break;
             }
