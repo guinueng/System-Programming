@@ -1,26 +1,17 @@
-#include <stdio.h> // To use printf and other function.
-#include <assert.h> // To use assert function.
-#include <unistd.h> // To use pid.
-#include <stdlib.h> // To use malloc, atoi function to change char* to int.
-#include <sys/wait.h> // To use wait function.
-#include <string.h>
-#include <fcntl.h> // To use open func.
+#include "assignment3.h"
 
 int main(int argc, char* argv[]){
     assert( argc == 3 ); // Exec only input val on cmd is 3.
     int fd = open(argv[1], O_RDONLY|O_SYNC);
-    size_t p_n = atoi(argv[2]);
-
-    assert( p_n < 17 || p_n > 3 );
-    int c_n = 0, pos = 1;
+    size_t p_n = atoi(argv[2]), c_n = 0;
+    assert( p_n < 17 && p_n > 3 );
 
     pid_t c_pid, pid;
 
     int pipe_init[2]; // Pipe connection for the first and last process.
     pipe(pipe_init);
-
-    int pipe_fd_even[2];
-    int pipe_fd_odd[2];
+    int pipe_fd_even[2]; // Pipe for even # of c_n -> odd.
+    int pipe_fd_odd[2]; // Pipe for odd -> even.
 
     for(size_t i = 0; i < p_n - 1; i++){
         int tmp = 0;
@@ -32,13 +23,6 @@ int main(int argc, char* argv[]){
 
         if(pid == 0 && i == p_n - 2){
             // Case for the last one. Does not need to make other child process. Thus finish exec.
-            if(i % 2 == 0){
-                //close(pipe_fd_even[1]);
-            }
-            else{
-                //close(pipe_fd_odd[1]);
-            }
-            //close(pipe_init[0]);
             c_pid = getpid();
             c_n = i + 1;
             tmp = 1;
@@ -47,39 +31,21 @@ int main(int argc, char* argv[]){
         }
         else if(pid != 0){
             // Parent case. Get pid number and current executed trial number and store it. Then wait until all child process is made.
-            if(i % 2 == 0){
-                //close(pipe_fd_even[0]);
+            if(i % 2 == 0)
                 write(pipe_fd_even[1], &tmp, sizeof(tmp));
-            }
-            else{
-                //close(pipe_fd_odd[0]);
+            else
                 write(pipe_fd_odd[1], &tmp, sizeof(tmp));
-            }
             c_pid = getpid();
             c_n = i;
             break;
         }
-        else{ // Child case;
-            if(i % 2 == 0){
-                //close(pipe_fd_odd[1]);
-                //write(pipe_fd_even[1], &tmp, sizeof(tmp));
-            }
-            else{
-                //close(pipe_fd_even[1]);
-                //write(pipe_fd_odd[1], &tmp, sizeof(tmp));
-            }
-        }
+        // Child case;
         // The other case is child case. So we do not need to consider cause it locates inside of for loop.
     }
 
-    int tmp = 0, cnt = 0, detect = 0;
-    int n_t;
-    if(c_n != p_n - 1)
-        n_t = c_n + 1;
-    else
-        n_t = 0;
+    int tmp = 0, detect = 0;
 
-    while(1){
+    while(1){ // Loop for printing.
         int last = 0;
         if(c_n != 0){
             if(c_n % 2 == 0) // Process order is even.
@@ -91,13 +57,12 @@ int main(int argc, char* argv[]){
             read(pipe_init[0], &tmp, sizeof(tmp));
 
         if(tmp == 1){
-            char* result;
             char* read_line;
             read_line = malloc(65);
             size_t indicator = 0;
             for(size_t i = 0; i < 65; i++){
                 indicator = read(fd, &read_line[i], 1);
-                if(indicator == -1)
+                if(indicator <= 0)
                     break;
                 if(read_line[i] == '\n'){
                     indicator = 1;
@@ -106,7 +71,7 @@ int main(int argc, char* argv[]){
             }
 
             if( indicator == 1 ){
-                int line = 0;
+                size_t line = 0;
                 if(c_n != 0){
                     if(c_n % 2 == 0) // Process order is even.
                         read(pipe_fd_odd[0], &line, sizeof(line));
@@ -116,8 +81,9 @@ int main(int argc, char* argv[]){
                 else
                     read(pipe_init[0], &line, sizeof(line));
 
-                printf("%d %d %s", c_pid, line, read_line);
+                printf("%d %ld %s", c_pid, line, read_line);
                 line++;
+    
                 if(c_n == p_n - 1){
                     write(pipe_init[1], &tmp, sizeof(tmp));
                     write(pipe_init[1], &line, sizeof(line));
@@ -145,50 +111,23 @@ int main(int argc, char* argv[]){
             free(read_line);
         }
         else if(tmp == -1){ // Finishing job.
-            int sig = -1;
-            if(c_n == p_n - 1)
+            int sig = -1; // Set terminate signal.
+            if(c_n == p_n - 1) // If last process, send signal during pipe_init pipe.
                 write(pipe_init[1], &sig, sizeof(sig));
-            else if(c_n % 2 == 0) // Process order is even.
+            else if(c_n % 2 == 0) // Process order is even, send signal by pipe_fd_even.
                 write(pipe_fd_even[1], &sig, sizeof(sig));
-            else // Process order is odd.
+            else // Process order is odd, send signal by pipe_fd_odd.
                 write(pipe_fd_odd[1], &sig, sizeof(sig));
-            if(detect != 0){
+            if(detect != 0){ // If one loop succeed, wait until child process is terminated;
                 wait(NULL);
-                break;
+                break; // Then break;
             }
             detect++;
         }
         else{
-            // Waiting.
+            // Looping to get signal.
         }
     }
-
-    /*while(1){
-        // Looping to terminate from last process.
-        int sig = 1;
-        if(c_n == p_n - 1){
-            if(c_n % 2 == 0)
-                write(pipe_fd_odd[1], &sig, sizeof(sig));
-            else
-                write(pipe_fd_even[1], &sig, sizeof(sig));
-            break;
-        }
-        else{
-            int rx = 0;
-            if(c_n % 2 == 0)
-                read(pipe_fd_even[0], &rx, sizeof(rx));
-            else
-                read(pipe_fd_odd[0], &rx, sizeof(rx));
-            if(rx == 1){
-                int sig = 1;
-                if(c_n % 2 == 0)
-                    write(pipe_fd_odd[1], &sig, sizeof(sig));
-                else
-                    write(pipe_fd_even[1], &sig, sizeof(sig));
-                break;
-            }
-        }
-    }*/
 
     printf("%d I'm exiting\n", c_pid);
     return 0;
