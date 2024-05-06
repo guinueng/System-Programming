@@ -66,6 +66,7 @@ int main(int argc, char* argv[]){
                     break;
                 if(read_line[i] == '\n'){
                     indicator = 1;
+                    read_line[i + 1] = '\0';
                     break;
                 }
             }
