@@ -58,9 +58,9 @@ int main(int argc, char* argv[]){
 
         if(tmp == 1){
             char* read_line;
-            read_line = malloc(65);
+            read_line = malloc(102);
             size_t indicator = 0;
-            for(size_t i = 0; i < 65; i++){
+            for(size_t i = 0; i < 101; i++){
                 indicator = read(fd, &read_line[i], 1);
                 if(indicator <= 0)
                     break;
