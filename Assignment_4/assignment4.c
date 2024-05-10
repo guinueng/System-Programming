@@ -23,7 +23,7 @@ int main(){
             printf("Input the name of data you want to deallocate\n");
             char d_name[51];
             scanf("%s", d_name);
-            deallocate(info_arr, heap_area, d_name, &t_qty);
+            deallocate(info_arr, heap_area, d_name, &t_qty, &e_pos);
             printf("%s has been deallocated\n", d_name);
         }
         printf("There is memory dump!\n");
