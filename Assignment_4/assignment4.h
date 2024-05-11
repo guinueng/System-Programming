@@ -108,30 +108,34 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
 
 void deallocate(struct mem_info* target, char* mem_area, char* name, size_t* qty, size_t* e_pos){
     size_t indicate = 0;
-    for(size_t i = 0; i <= *qty; i++){
+    printf("qty : %d\n", *qty);
+    for(size_t i = 0; i < *qty; i++){
+        printf("%d th trial\n", i);
         if(!indicate && !strcmp(target[i].name, name)){
             printf("Target detected\n");
             indicate++;
         }
-        else if(indicate){
+        if(indicate){
             printf("Target to move : %s %s\n",target[i].type, target[i].name);
             printf("Target pos : %s %s\n", target[i - 1].type, target[i - 1].name);
-            if(i != *qty){
-                for(size_t j = 0; j < target[i - 1].e_pos - target[i - 1].s_pos; j++)
-                    *(mem_area + target[i - 1].s_pos + j) = *(mem_area + target[i].s_pos + j);
-                strcpy(target[i - 1].name, target[i].name);
-                strcpy(target[i - 1].type, target[i].type);
-                target[i - 1].s_pos = target[i].s_pos;
-                target[i - 1].e_pos = target[i].e_pos;
-                printf("Moved target : %s %s\n", target[i - 1].type, target[i - 1].name);
+            if(i < *qty - 1){
+                printf("Target i : %d\n", i);
+                size_t len = target[i + 1].e_pos - target[i + 1].s_pos;
+                for(size_t j = 0; j < len; j++)
+                    *(mem_area + target[i].s_pos + j) = *(mem_area + target[i + 1].s_pos + j);
+                strcpy(target[i].name, target[i + 1].name);
+                strcpy(target[i].type, target[i + 1].type);
+                target[i].s_pos = target[i + 1].s_pos;
+                target[i].e_pos = target[i + 1].e_pos;
+                printf("Moved target : %s %s %ld %ld\n", target[i].type, target[i].name, target[i].s_pos, target[i].e_pos);
             }
             else{
                 printf("Else case\n");
                 *e_pos = target[i].s_pos;
                 for(size_t j = target[i].s_pos; j < target[i].e_pos; j++)
                     *(mem_area + j) = 0x00;
-                *qty--;
             }
         }
     }
+    *qty -= 1;
 }

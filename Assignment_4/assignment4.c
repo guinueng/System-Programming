@@ -8,7 +8,7 @@ int main(){
     char* heap_area = malloc(128);
 
     while(1){
-        size_t menu;
+        size_t menu, rst;
         printf("Do you want to allocate data (1) or deallocate data (2) ?\n");
         scanf("%ld", &menu);
         if(!(menu - 1)){ // If menu == 1 which is allocating data.
@@ -16,7 +16,7 @@ int main(){
             scanf("%s", info_arr[t_qty].type);
             scanf("%s", info_arr[t_qty].name);
             printf("Please input a value for the data type\n");
-            allocate(info_arr + t_qty, heap_area, &e_pos);
+            rst = allocate(info_arr + t_qty, heap_area, &e_pos);
             t_qty++;
         }
         else{ // If menu == 2, which is deallocating data.
@@ -26,13 +26,17 @@ int main(){
             deallocate(info_arr, heap_area, d_name, &t_qty, &e_pos);
             printf("%s has been deallocated\n", d_name);
         }
-        printf("There is memory dump!\n");
-        dump_mem(heap_area, 128);
-        printf("\n-----Data you have now-----\n");
-        for(size_t i = 0; i < t_qty; i++){
-            //printf("%s\n", info_arr[i].name);
-            printf("%s %s %ld %ld\n", info_arr[i].type, info_arr[i].name, info_arr[i].s_pos, info_arr[i].e_pos);
+        if(!rst){
+            printf("There is memory dump!\n");
+            dump_mem(heap_area, 128);
+            printf("\n-----Data you have now-----\n");
+            for(size_t i = 0; i < t_qty; i++){
+                //printf("%s\n", info_arr[i].name);
+                printf("%s %s %ld %ld\n", info_arr[i].type, info_arr[i].name, info_arr[i].s_pos, info_arr[i].e_pos);
+            }
         }
+        else
+            t_qty--;
         //break;
     }
 
