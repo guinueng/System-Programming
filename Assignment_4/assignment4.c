@@ -8,27 +8,40 @@ int main(){
     char* heap_area = malloc(128);
 
     while(1){
-        size_t menu, rst;
+        size_t menu, rst = 0;
         printf("Do you want to allocate data (1) or deallocate data (2) ?\n");
         scanf("%ld", &menu);
-        if(!(menu - 1)){ // If menu == 1 which is allocating data.
+        if(menu == 1){ // If menu == 1 which is allocating data.
             printf("Input the type of data you want to allocate and the name of the data\n");
             scanf("%s", info_arr[t_qty].type);
             getchar();
             scanf("%s", info_arr[t_qty].name);
             getchar();
-            printf("Please input a value for the data type\n");
-            rst = allocate(info_arr + t_qty, heap_area, &e_pos);
-            t_qty++;
+            for(size_t i = 0; i < t_qty; i++){
+                if(!strcmp(info_arr[i].name, info_arr[t_qty].name))
+                    rst = 2;
+            }
+            if(rst == 0){
+                printf("Please input a value for the data type\n");
+                rst = allocate(info_arr + t_qty, heap_area, &e_pos);
+                t_qty++;
+            }
         }
-        else{ // If menu == 2, which is deallocating data.
+        else if(menu == 2){ // If menu == 2, which is deallocating data.
             printf("Input the name of data you want to deallocate\n");
             char d_name[51];
             scanf("%s", d_name);
-            deallocate(info_arr, heap_area, d_name, &t_qty, &e_pos);
-            printf("%s has been deallocated\n", d_name);
+            rst = 2;
+            for(size_t i = 0; i < t_qty; i++){
+                if(!strcmp(info_arr[i].name, d_name))
+                    rst = 0;
+            }
+            if(rst == 0){
+                deallocate(info_arr, heap_area, d_name, &t_qty, &e_pos);
+                printf("%s has been deallocated\n", d_name);
+            }
         }
-        if(!rst){
+        if(rst == 0){
             printf("There is memory dump!\n");
             dump_mem(heap_area, 128);
             printf("\n-----Data you have now-----\n");
@@ -36,9 +49,13 @@ int main(){
                 //printf("%s\n", info_arr[i].name);
                 printf("%s %s %ld %ld\n", info_arr[i].type, info_arr[i].name, info_arr[i].s_pos, info_arr[i].t_len);
             }
+            printf("last pos : %ld\n", e_pos);
         }
-        else
+        else if(rst == 1)
             t_qty--;
+        else{
+
+        }
         //break;
     }
 

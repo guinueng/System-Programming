@@ -1,9 +1,14 @@
 #include <stdio.h> // Use for printf, scanf, etc...
 #include <stdlib.h> // Use for malloc, free.
 #include <string.h> // Use for strcmp.
+#include <stdint.h> // To use uint32_t.
 
 enum data_type { Short, Char, Float, Long, Int, Struct };
 
+union floating_point{
+    float value;
+    uint32_t conv_value;
+};
 struct mem_info{
     char    name[51];
     char    type[7];
@@ -24,10 +29,15 @@ void dump_mem(const void *mem, size_t len){ // Code given by assignment explain 
 }
 
 size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
+
     //printf("Given Type : %s, Name : %s\n", target -> name)
     if(!strcmp(target -> type, "Short")){ // Short has 2 bytes.
-        size_t data;
-        scanf("%ld", &data);
+        if(*s_pos > 126){ // Check there is enough mem space.
+            printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
+            return 2;
+        }
+        long long data;
+        scanf("%lld", &data);
         if(data >= 0 && data < 32768){
             target -> s_pos = *s_pos;
             target -> t_len = 2;
@@ -44,6 +54,10 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
         printf("Complete\n");
     }
     else if(!strcmp(target -> type, "Char")){ // Char has 1 bytes. -> Does we get input by letter or just number?
+        if(*s_pos > 127){
+            printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
+            return 2;
+        }
         printf("Char!\n");
         char data;
         scanf("%c", &data); // Get input by number.
@@ -61,11 +75,32 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
         }
     }
     else if(!strcmp(target -> type, "Float") || !strcmp(target -> type, "float")){ // Float has 4 bytes.
-        printf("Float\n");
+        if(*s_pos > 124){
+            printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
+            return 2;
+        }
         // by using union input float -> print unsigned int
+        union floating_point point;
+        scanf("%f", &point.value);
+        printf("By float : %f\n", point.value);
+        uint32_t calc_val = point.conv_value;
+        printf("By uint32_t : %d | calc_Val : %d\n", point.conv_value, calc_val);
+        
+        target -> s_pos = *s_pos;
+        target -> t_len = 4;
+        for(size_t i = 0; i < 4; i++){
+            *(mem_area + *s_pos + i) = (calc_val % 256);
+            calc_val /= 256;
+        }
+        *s_pos += 4;
+
     }
     else if(!strcmp(target -> type, "Long")){ // Long has 8 bytes (Range given by assignment description).
-        unsigned  long data;
+        if(*s_pos > 121){
+            printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
+            return 2;
+        }
+        unsigned long data;
         scanf("%ld", &data);
         if(data >= 0 && data <= 9223372036854775807){
             target -> s_pos = *s_pos;
@@ -82,8 +117,12 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
         }
     }
     else if(!strcmp(target -> type, "Int")){ // Int has 4 bytes.
-        long data;
-        scanf("%ld", &data);
+        if(*s_pos > 124){
+            printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
+            return 2;
+        }
+        long long data;
+        scanf("%lld", &data);
         if(data >= 0 && data < 2147483648){
             target -> s_pos = *s_pos;
             target -> t_len = 4;
@@ -100,6 +139,21 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
     }
     else if(!strcmp(target -> type, "Struct")){ // Struct has vary size.
         printf("Struct\n");
+        printf("How many data should be in the struct\n");
+        target -> s_pos = *s_pos;
+        target -> t_len = 0;
+        size_t qty;
+        scanf("%ld", &qty);
+        printf("Please input each type and its value\n");
+        for(size_t i = 0; i < qty; i++){
+            struct mem_info tmp;
+            scanf("%s", tmp.type);
+            getchar();
+            tmp.name[0] = (char)i;
+            size_t rst = allocate(&tmp, mem_area, s_pos);
+            if(rst == 0)
+                target -> t_len += tmp.t_len;
+        }
     }
     else{
         printf("Wrong type.\nDo nothing.\n");
@@ -111,9 +165,9 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
 
 void deallocate(struct mem_info* target, char* mem_area, char* name, size_t* qty, size_t* e_pos){
     size_t indicate = 0;
-    printf("qty : %d\n", *qty);
+    printf("qty : %ld\n", *qty);
     for(size_t i = 0; i < *qty; i++){
-        printf("%d th trial\n", i);
+        printf("%ld th trial\n", i);
         if(!indicate && !strcmp(target[i].name, name)){
             printf("Target detected\n");
             indicate++;
@@ -122,7 +176,7 @@ void deallocate(struct mem_info* target, char* mem_area, char* name, size_t* qty
             printf("Target to move : %s %s %ld %ld\n",target[i + 1].type, target[i + 1].name, target[i + 1].s_pos, target[i + 1].t_len);
             printf("Target pos : %s %s %ld %ld\n", target[i].type, target[i].name, target[i].s_pos, target[i].t_len);
             if(i < *qty - 1){
-                printf("Target i : %d\n", i);
+                printf("Target i : %ld\n", i);
                 //size_t len = target[i + 1].e_pos - target[i + 1].s_pos;
                 for(size_t j = 0; j < target[i + 1].t_len; j++)
                     *(mem_area + target[i].s_pos + j) = *(mem_area + target[i + 1].s_pos + j);
@@ -137,7 +191,10 @@ void deallocate(struct mem_info* target, char* mem_area, char* name, size_t* qty
                 printf("Else case\n");
                 for(size_t j = target[i].s_pos; j < *e_pos; j++)
                     *(mem_area + j) = '\0';
-                *e_pos = target[i - 1].s_pos + target[i - 1].t_len;
+                if(i != 0)
+                    *e_pos = target[i - 1].s_pos + target[i - 1].t_len;
+                else
+                    *e_pos = 0;
             }
         }
     }
