@@ -172,7 +172,10 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
                 mem_area[target -> s_pos + i] = 0;
             *s_pos = target -> s_pos;
             while( getchar() != '\n' );
-            return 2;
+            if(rst == 1)
+                return 1;
+            if(rst == 2)
+                return 2; // Need to fix or consider when mem alloc failed on struct building, does we have to print remaining mem size?
         }
     }
     else{
