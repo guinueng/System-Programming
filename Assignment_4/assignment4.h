@@ -8,7 +8,7 @@ struct mem_info{
     char    name[51];
     char    type[7];
     size_t  s_pos;
-    size_t  e_pos;
+    size_t  t_len;
 };
 
 void dump_mem(const void *mem, size_t len){ // Code given by assignment explain pdf file. Printing specific mem area.
@@ -30,7 +30,7 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
         scanf("%ld", &data);
         if(data >= 0 && data < 32768){
             target -> s_pos = *s_pos;
-            target -> e_pos = *s_pos + 2;
+            target -> t_len = 2;
             for(size_t i = 0; i < 2; i++){
                 *(mem_area + *s_pos + i) = (data % 256);
                 data /= 256;
@@ -45,11 +45,13 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
     }
     else if(!strcmp(target -> type, "Char")){ // Char has 1 bytes. -> Does we get input by letter or just number?
         printf("Char!\n");
-        size_t data;
-        scanf("%ld", &data); // Get input by number.
+        char data;
+        scanf("%c", &data); // Get input by number.
+        getchar(); // <- 
+        printf("Got value : %d\n",data);
         if(data >= 0 && data < 128){
             target -> s_pos = *s_pos;
-            target -> e_pos = *s_pos + 1;
+            target -> t_len = 1;
             *(mem_area + *s_pos) = data;
             *s_pos += 1;
         }
@@ -58,15 +60,16 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
             return 1;
         }
     }
-    else if(!strcmp(target -> type, "Float")){ // Float has 4 bytes.
+    else if(!strcmp(target -> type, "Float") || !strcmp(target -> type, "float")){ // Float has 4 bytes.
         printf("Float\n");
+        // by using union input float -> print unsigned int
     }
     else if(!strcmp(target -> type, "Long")){ // Long has 8 bytes (Range given by assignment description).
         unsigned  long data;
         scanf("%ld", &data);
         if(data >= 0 && data <= 9223372036854775807){
             target -> s_pos = *s_pos;
-            target -> e_pos = *s_pos + 8;
+            target -> t_len = 8;
             for(size_t i = 0; i < 8; i++){
                 *(mem_area + *s_pos + i) = (data % 256);
                 data /= 256;
@@ -83,7 +86,7 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
         scanf("%ld", &data);
         if(data >= 0 && data < 2147483648){
             target -> s_pos = *s_pos;
-            target -> e_pos = *s_pos + 4;
+            target -> t_len = 4;
             for(size_t i = 0; i < 4; i++){
                 *(mem_area + *s_pos + i) = (data % 256);
                 data /= 256;
@@ -116,24 +119,25 @@ void deallocate(struct mem_info* target, char* mem_area, char* name, size_t* qty
             indicate++;
         }
         if(indicate){
-            printf("Target to move : %s %s\n",target[i].type, target[i].name);
-            printf("Target pos : %s %s\n", target[i - 1].type, target[i - 1].name);
+            printf("Target to move : %s %s %ld %ld\n",target[i + 1].type, target[i + 1].name, target[i + 1].s_pos, target[i + 1].t_len);
+            printf("Target pos : %s %s %ld %ld\n", target[i].type, target[i].name, target[i].s_pos, target[i].t_len);
             if(i < *qty - 1){
                 printf("Target i : %d\n", i);
-                size_t len = target[i + 1].e_pos - target[i + 1].s_pos;
-                for(size_t j = 0; j < len; j++)
+                //size_t len = target[i + 1].e_pos - target[i + 1].s_pos;
+                for(size_t j = 0; j < target[i + 1].t_len; j++)
                     *(mem_area + target[i].s_pos + j) = *(mem_area + target[i + 1].s_pos + j);
                 strcpy(target[i].name, target[i + 1].name);
                 strcpy(target[i].type, target[i + 1].type);
-                target[i].s_pos = target[i + 1].s_pos;
-                target[i].e_pos = target[i + 1].e_pos;
-                printf("Moved target : %s %s %ld %ld\n", target[i].type, target[i].name, target[i].s_pos, target[i].e_pos);
+                target[i].t_len = target[i + 1].t_len;
+                target[i + 1].s_pos = target[i].s_pos + target[i].t_len;
+
+                printf("Moved target : %s %s %ld %ld\n", target[i].type, target[i].name, target[i].s_pos, target[i].t_len);
             }
             else{
                 printf("Else case\n");
-                *e_pos = target[i].s_pos;
-                for(size_t j = target[i].s_pos; j < target[i].e_pos; j++)
-                    *(mem_area + j) = 0x00;
+                for(size_t j = target[i].s_pos; j < *e_pos; j++)
+                    *(mem_area + j) = '\0';
+                *e_pos = target[i - 1].s_pos + target[i - 1].t_len;
             }
         }
     }

@@ -14,7 +14,9 @@ int main(){
         if(!(menu - 1)){ // If menu == 1 which is allocating data.
             printf("Input the type of data you want to allocate and the name of the data\n");
             scanf("%s", info_arr[t_qty].type);
+            getchar();
             scanf("%s", info_arr[t_qty].name);
+            getchar();
             printf("Please input a value for the data type\n");
             rst = allocate(info_arr + t_qty, heap_area, &e_pos);
             t_qty++;
@@ -32,7 +34,7 @@ int main(){
             printf("\n-----Data you have now-----\n");
             for(size_t i = 0; i < t_qty; i++){
                 //printf("%s\n", info_arr[i].name);
-                printf("%s %s %ld %ld\n", info_arr[i].type, info_arr[i].name, info_arr[i].s_pos, info_arr[i].e_pos);
+                printf("%s %s %ld %ld\n", info_arr[i].type, info_arr[i].name, info_arr[i].s_pos, info_arr[i].t_len);
             }
         }
         else
