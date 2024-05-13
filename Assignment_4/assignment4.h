@@ -33,11 +33,12 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
     //printf("Given Type : %s, Name : %s\n", target -> name)
     if(!strcmp(target -> type, "Short")){ // Short has 2 bytes.
         if(*s_pos > 126){ // Check there is enough mem space.
-            printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
+            //printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
             return 2;
         }
         long long data;
         scanf("%lld", &data);
+        getchar();
         if(data >= 0 && data < 32768){
             target -> s_pos = *s_pos;
             target -> t_len = 2;
@@ -55,7 +56,7 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
     }
     else if(!strcmp(target -> type, "Char")){ // Char has 1 bytes. -> Does we get input by letter or just number?
         if(*s_pos > 127){
-            printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
+            //printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
             return 2;
         }
         printf("Char!\n");
@@ -76,12 +77,13 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
     }
     else if(!strcmp(target -> type, "Float") || !strcmp(target -> type, "float")){ // Float has 4 bytes.
         if(*s_pos > 124){
-            printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
+            //printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
             return 2;
         }
         // by using union input float -> print unsigned int
         union floating_point point;
         scanf("%f", &point.value);
+        getchar();
         printf("By float : %f\n", point.value);
         uint32_t calc_val = point.conv_value;
         printf("By uint32_t : %d | calc_Val : %d\n", point.conv_value, calc_val);
@@ -96,13 +98,14 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
 
     }
     else if(!strcmp(target -> type, "Long")){ // Long has 8 bytes (Range given by assignment description).
-        if(*s_pos > 121){
-            printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
+        if(*s_pos > 120){
+            //printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
             return 2;
         }
         unsigned long data;
         scanf("%ld", &data);
-        if(data >= 0 && data <= 9223372036854775807){
+        getchar();
+        if(data >= 0 && data <= 9223372036854775807){ // Have to fix when exceeding pos long range.
             target -> s_pos = *s_pos;
             target -> t_len = 8;
             for(size_t i = 0; i < 8; i++){
@@ -118,11 +121,12 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
     }
     else if(!strcmp(target -> type, "Int")){ // Int has 4 bytes.
         if(*s_pos > 124){
-            printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
+            //printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
             return 2;
         }
         long long data;
         scanf("%lld", &data);
+        getchar();
         if(data >= 0 && data < 2147483648){
             target -> s_pos = *s_pos;
             target -> t_len = 4;
@@ -138,21 +142,37 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
         }
     }
     else if(!strcmp(target -> type, "Struct")){ // Struct has vary size.
-        printf("Struct\n");
+        printf("Struct\n"); // We can't return not enough space. Need to modify.
         printf("How many data should be in the struct\n");
         target -> s_pos = *s_pos;
         target -> t_len = 0;
-        size_t qty;
+        size_t qty, rst;
         scanf("%ld", &qty);
+        getchar();
         printf("Please input each type and its value\n");
-        for(size_t i = 0; i < qty; i++){
+        for(size_t i = 0; i < qty; i++){ // Allocating element of struct.
             struct mem_info tmp;
-            scanf("%s", tmp.type);
-            getchar();
-            tmp.name[0] = (char)i;
-            size_t rst = allocate(&tmp, mem_area, s_pos);
+            scanf("%s", tmp.type); // Get type.
+            getchar(); // Rm space.
+            tmp.name[0] = (char)i; // Make fake name.
+            rst = allocate(&tmp, mem_area, s_pos);
             if(rst == 0)
                 target -> t_len += tmp.t_len;
+            else{
+                break;
+                /*
+                 *  getchar(); // To get exceeding mem's type.
+                 *  getchar(); // To get exceeding mem's value.
+                 */
+            }
+        }
+        if(rst != 0){ // When returned wrong type | wrong value error(1) or not enough mem space error(2).
+            printf("Returned 1\n"); // Does we have to consider back to first when got all input or when detecting mem overflow.
+            for(size_t i = 0; i < target -> t_len; i++)
+                mem_area[target -> s_pos + i] = 0;
+            *s_pos = target -> s_pos;
+            while( getchar() != '\n' );
+            return 2;
         }
     }
     else{
