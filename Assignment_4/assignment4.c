@@ -19,8 +19,10 @@ int main(){
             scanf("%s", info_arr[t_qty].name);
             getchar();
             for(size_t i = 0; i < t_qty; i++){
-                if(!strcmp(info_arr[i].name, info_arr[t_qty].name))
+                if(!strcmp(info_arr[i].name, info_arr[t_qty].name)){
                     rst = 3;
+                    printf("<%s> is already stored in memory\n", info_arr[t_qty].name);
+                }
             }
             if(rst == 0){
                 printf("Please input a value for the data type\n");
@@ -42,18 +44,20 @@ int main(){
                 deallocate(info_arr, heap_area, d_name, &t_qty, &e_pos);
                 printf("%s has been deallocated\n", d_name);
             }
+            else
+                printf("%s is not existed in memory\n", d_name);
         }
         if(rst == 0){
             printf("There is memory dump!\n");
             dump_mem(heap_area, 128);
             printf("\n-----Data you have now-----\n");
             for(size_t i = 0; i < t_qty; i++){
-                //printf("%s\n", info_arr[i].name);
-                printf("%s %s %ld %ld\n", info_arr[i].type, info_arr[i].name, info_arr[i].s_pos, info_arr[i].t_len);
+                printf("%s\n", info_arr[i].name);
+                //printf("%s %s %ld %ld\n", info_arr[i].type, info_arr[i].name, info_arr[i].s_pos, info_arr[i].t_len);
             }
-            printf("last pos : %ld\n", e_pos);
+            //printf("last pos : %ld\n", e_pos);
         }
-        else if(rst == 1){ // Wrong type, value error case.
+        else if(rst == 1 || rst == 4){ // Wrong type, value error case.
             t_qty--;
         }
         else if(rst == 2){ // Not enough mem case.

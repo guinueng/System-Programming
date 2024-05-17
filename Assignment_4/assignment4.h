@@ -31,16 +31,14 @@ void dump_mem(const void *mem, size_t len){ // Code given by assignment explain 
 size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
 
     //printf("Given Type : %s, Name : %s\n", target -> name)
-    if(!strcmp(target -> type, "Short")){ // Short has 2 bytes.
-        if(*s_pos > 126){ // Check there is enough mem space.
-            //printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
-            return 2;
-        }
-        long long data;
-        scanf("%lld", &data);
+    if(!strcmp(target -> type, "Short") || !strcmp(target -> type, "short")){ // Short has 2 bytes.
+        unsigned long long data;
+        scanf("%llu", &data);
         getchar();
-        if(data >= 0 && data < 32768){
-            target -> s_pos = *s_pos;
+        if(*s_pos > 126) // Check there is enough mem space.
+            return 2;
+        else if(data >= 0 && data < 32768){ // Check data input range.
+            target -> s_pos = *s_pos; // Inside range, input data into mem.
             target -> t_len = 2;
             for(size_t i = 0; i < 2; i++){
                 *(mem_area + *s_pos + i) = (data % 256);
@@ -48,46 +46,37 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
             }
             *s_pos += 2;
         }
-        else{
-            printf("Wrong Value.\nDo nothing.\n");
+        else{ // If given data exceed range, do nothing.
+            printf("There is invalid input\n");
             return 1;
         }
-        printf("Complete\n");
     }
-    else if(!strcmp(target -> type, "Char")){ // Char has 1 bytes. -> Does we get input by letter or just number?
-        if(*s_pos > 127){
-            //printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
-            return 2;
-        }
-        printf("Char!\n");
+    else if(!strcmp(target -> type, "Char") || !strcmp(target -> type, "char")){ // 1. Char has 1 bytes. -> Does we get input by letter or just number?
         char data;
-        scanf("%c", &data); // Get input by number.
-        getchar(); // <- 
-        printf("Got value : %d\n",data);
-        if(data >= 0 && data < 128){
+        scanf("%c", &data); // 4. Get input by number or char?
+        getchar(); // <- Need to check else case.
+        if(*s_pos > 127)
+            return 2;
+        else if(data >= 0 && data < 128){
             target -> s_pos = *s_pos;
             target -> t_len = 1;
             *(mem_area + *s_pos) = data;
             *s_pos += 1;
         }
         else{
-            printf("Wrong Value.\nDo nothing.\n");
+            printf("There is invalid input\n");
             return 1;
         }
     }
     else if(!strcmp(target -> type, "Float") || !strcmp(target -> type, "float")){ // Float has 4 bytes.
-        if(*s_pos > 124){
-            //printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
-            return 2;
-        }
         // by using union input float -> print unsigned int
         union floating_point point;
         scanf("%f", &point.value);
         getchar();
-        printf("By float : %f\n", point.value);
+        if(*s_pos > 124)
+            return 2;
+    
         uint32_t calc_val = point.conv_value;
-        printf("By uint32_t : %d | calc_Val : %d\n", point.conv_value, calc_val);
-        
         target -> s_pos = *s_pos;
         target -> t_len = 4;
         for(size_t i = 0; i < 4; i++){
@@ -97,15 +86,14 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
         *s_pos += 4;
 
     }
-    else if(!strcmp(target -> type, "Long")){ // Long has 8 bytes (Range given by assignment description).
-        if(*s_pos > 120){
-            //printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
-            return 2;
-        }
-        unsigned long data;
-        scanf("%ld", &data);
+    else if(!strcmp(target -> type, "Long") || !strcmp(target -> type, "long")){ // Long has 8 bytes (Range given by assignment description).
+        unsigned long long data;
+        scanf("%llu", &data);
         getchar();
-        if(data >= 0 && data <= 9223372036854775807){ // Have to fix when exceeding pos long range.
+
+        if(*s_pos > 120)
+            return 2;
+        else if(data >= 0 && data <= 9223372036854775807){
             target -> s_pos = *s_pos;
             target -> t_len = 8;
             for(size_t i = 0; i < 8; i++){
@@ -115,19 +103,17 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
             *s_pos += 8;
         }
         else{
-            printf("Wrong Value.\nDo nothing.\n");
+            printf("There is invalid input\n");
             return 1;
         }
     }
-    else if(!strcmp(target -> type, "Int")){ // Int has 4 bytes.
-        if(*s_pos > 124){
-            //printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", *s_pos - 128);
-            return 2;
-        }
-        long long data;
-        scanf("%lld", &data);
+    else if(!strcmp(target -> type, "Int") || !strcmp(target -> type, "int")){ // Int has 4 bytes.
+        unsigned long long data;
+        scanf("%llu", &data);
         getchar();
-        if(data >= 0 && data < 2147483648){
+        if(*s_pos > 124)
+            return 2;
+        else if(data >= 0 && data < 2147483648){
             target -> s_pos = *s_pos;
             target -> t_len = 4;
             for(size_t i = 0; i < 4; i++){
@@ -137,12 +123,12 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
             *s_pos += 4;
         }
         else{
-            printf("Wrong Value.\nDo nothing.\n");
+            printf("There is invalid input\n");
             return 1;
         }
     }
-    else if(!strcmp(target -> type, "Struct")){ // Struct has vary size.
-        printf("Struct\n"); // We can't return not enough space. Need to modify.
+    else if(!strcmp(target -> type, "Struct") || !strcmp(target -> type, "struct")){ // Struct has vary size.
+        printf("Struct\n");
         printf("How many data should be in the struct\n");
         target -> s_pos = *s_pos;
         target -> t_len = 0;
@@ -158,29 +144,28 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
             rst = allocate(&tmp, mem_area, s_pos);
             if(rst == 0)
                 target -> t_len += tmp.t_len;
-            else{
-                break;
-                /*
-                 *  getchar(); // To get exceeding mem's type.
-                 *  getchar(); // To get exceeding mem's value.
-                 */
-            }
+            else
+                break; // On piazza, there was answer that we can dealt w/ any exception exec timing on long value input on struct.
+                // Such as we can exec exception by checking val on by one like this case, or get all the value and exec exception case.
         }
         if(rst != 0){ // When returned wrong type | wrong value error(1) or not enough mem space error(2).
-            printf("Returned 1\n"); // Does we have to consider back to first when got all input or when detecting mem overflow.
+            printf("Returned 1\n");
             for(size_t i = 0; i < target -> t_len; i++)
                 mem_area[target -> s_pos + i] = 0;
             *s_pos = target -> s_pos;
-            while( getchar() != '\n' );
-            if(rst == 1)
+            if(rst == 4){
+                while( getchar() != '\n' );
                 return 1;
-            if(rst == 2)
-                return 2; // Need to fix or consider when mem alloc failed on struct building, does we have to print remaining mem size?
+            }
+            else if (rst == 1)
+                return 1;
+            else
+                return 2; // 2. Need to fix or consider when mem alloc failed on struct building, does we have to print remaining mem size?
         }
     }
     else{
-        printf("Wrong type.\nDo nothing.\n");
-        return 1;
+        printf("Invalid type\n");
+        return 4;
     }
 
     return 0;
