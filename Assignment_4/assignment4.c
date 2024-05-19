@@ -25,9 +25,7 @@ int main(){
                 }
             }
             if(rst == 0){
-                if(strcmp(info_arr[t_qty].type, "struct"))
-                    printf("Please input a value for the data type\n");
-                rst = allocate(info_arr + t_qty, heap_area, &e_pos);
+                rst = allocate(info_arr + t_qty, heap_area, &e_pos, 0);
                 t_qty++;
             }
         }
@@ -38,16 +36,18 @@ int main(){
             getchar();
             rst = 3;
             for(size_t i = 0; i < t_qty; i++){
-                if(!strcmp(info_arr[i].name, d_name))
+                if(!strcmp(info_arr[i].name, d_name)){
+                    deallocate(info_arr, heap_area, d_name, &t_qty, &e_pos, i);
+                    printf("%s has been deallocated\n", d_name);
                     rst = 0;
+                    break;
+                }
             }
-            if(rst == 0){
-                deallocate(info_arr, heap_area, d_name, &t_qty, &e_pos);
-                printf("%s has been deallocated\n", d_name);
-            }
-            else
+            if(rst == 3)
                 printf("%s is not existed in memory\n", d_name);
         }
+        else
+            rst = 3;
         switch(rst){
             case 0: // Normal case
                 printf("There is memory dump!\n");
@@ -62,28 +62,9 @@ int main(){
             case 4: // Dup | non existing name case.
                 t_qty--;
                 break;
-            case 3: // Wrong type case.
+            case 3: // Wrong type || menu case.
                 break;
         }
-        /*
-        if(rst == 0){
-            printf("There is memory dump!\n");
-            dump_mem(heap_area, 128);
-            printf("\n-----Data you have now-----\n");
-            for(size_t i = 0; i < t_qty; i++)
-                printf("%s\n", info_arr[i].name);
-        }
-        else if(rst == 1 || rst == 4){ // Wrong type, value error case.
-            t_qty--;
-        }
-        else if(rst == 2){ // Not enough mem case.
-            printf("There is not enough memory for the data which you require, you can only use %ld byte(s).\n", 128 - e_pos);
-            t_qty--;
-        }
-        else if(rst == 3){ // Dup | non existing name error case
-            //Do nothing.
-        }*/
-        //break;
     }
 
     free(heap_area);

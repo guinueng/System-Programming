@@ -26,16 +26,18 @@ void dump_mem(const void *mem, size_t len){ // Code given by assignment explain 
     puts("");
 }
 
-size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
+size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos, size_t signal){
 
     //printf("Given Type : %s, Name : %s\n", target -> name)
     if(!strcmp(target -> type, "Short") || !strcmp(target -> type, "short")){ // Short has 2 bytes.
+        if(*s_pos > 126) // Check there is enough mem space.
+            return 2;
+        if(signal == 0)
+            printf("Please input a value for the data type\n");
         unsigned long long data;
         scanf("%llu", &data); // On piazza, we can just consider non-negative values.
         getchar();
-        if(*s_pos > 126) // Check there is enough mem space.
-            return 2;
-        else if(data >= 0 && data < 32768){ // Check data input range.
+        if(data >= 0 && data < 32768){ // Check data input range.
             target -> s_pos = *s_pos; // Inside range, input data into mem.
             target -> t_len = 2;
             for(size_t i = 0; i < 2; i++){ // Put data by little endian w/ hexadecimal notation.
@@ -50,12 +52,14 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
         }
     } // Similar as above case.
     else if(!strcmp(target -> type, "Char") || !strcmp(target -> type, "char")){ // Char has 1 byte.
+        if(*s_pos > 127)
+            return 2;
+        if(signal == 0)
+            printf("Please input a value for the data type\n");
         char data;
         scanf("%c", &data);
         getchar();
-        if(*s_pos > 127)
-            return 2;
-        else if(data >= 0 && data < 128){
+        if(data >= 0 && data < 128){
             target -> s_pos = *s_pos;
             target -> t_len = 1;
             *(mem_area + *s_pos) = data;
@@ -67,12 +71,14 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
         }
     }
     else if(!strcmp(target -> type, "Float") || !strcmp(target -> type, "float")){ // Float has 4 bytes.
+        if(*s_pos > 124)
+            return 2;
+        if(signal == 0)
+            printf("Please input a value for the data type\n");
         // by using union input float -> print unsigned int
         union floating_point point;
         scanf("%f", &point.value);
         getchar();
-        if(*s_pos > 124)
-            return 2;
     
         uint32_t calc_val = point.conv_value;
         target -> s_pos = *s_pos;
@@ -85,13 +91,15 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
 
     }
     else if(!strcmp(target -> type, "Long") || !strcmp(target -> type, "long")){ // Long has 8 bytes (Range given by assignment description).
+        if(*s_pos > 120)
+            return 2;
+        if(signal == 0)
+            printf("Please input a value for the data type\n");
         unsigned long long data;
         scanf("%llu", &data);
         getchar();
 
-        if(*s_pos > 120)
-            return 2;
-        else if(data >= 0 && data <= 9223372036854775807){
+        if(data >= 0 && data <= 9223372036854775807){
             target -> s_pos = *s_pos;
             target -> t_len = 8;
             for(size_t i = 0; i < 8; i++){
@@ -106,12 +114,14 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
         }
     }
     else if(!strcmp(target -> type, "Int") || !strcmp(target -> type, "int")){ // Int has 4 bytes.
+        if(*s_pos > 124)
+            return 2;
+        if(signal == 0)
+            printf("Please input a value for the data type\n");
         unsigned long long data;
         scanf("%llu", &data);
         getchar();
-        if(*s_pos > 124)
-            return 2;
-        else if(data >= 0 && data < 2147483648){
+        if(data >= 0 && data < 2147483648){
             target -> s_pos = *s_pos;
             target -> t_len = 4;
             for(size_t i = 0; i < 4; i++){
@@ -138,7 +148,7 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
             scanf("%s", tmp.type); // Get type.
             getchar(); // Rm space.
             tmp.name[0] = (char)i; // Make fake name.
-            rst = allocate(&tmp, mem_area, s_pos);
+            rst = allocate(&tmp, mem_area, s_pos, 1);
             if(rst == 0)
                 target -> t_len += tmp.t_len;
             else
@@ -153,10 +163,12 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
                 while( getchar() != '\n' );
                 return 1;
             }
-            else if (rst == 1)
+            else if (rst == 1) // Exceeding range.
                 return 1;
-            else
+            else{
+                while( getchar() != '\n' );
                 return 2; // 2. Need to fix or consider when mem alloc failed on struct building, does we have to print remaining mem size?
+            }
         }
     }
     else{
@@ -167,28 +179,23 @@ size_t allocate(struct mem_info* target, char* mem_area, size_t* s_pos){
     return 0;
 }
 
-void deallocate(struct mem_info* target, char* mem_area, char* name, size_t* qty, size_t* e_pos){
-    size_t indicate = 0;
-    for(size_t i = 0; i < *qty; i++){
-        if(!indicate && !strcmp(target[i].name, name))
-            indicate++;
-        if(indicate){
-            if(i < *qty - 1){
-                for(size_t j = 0; j < target[i + 1].t_len; j++)
-                    *(mem_area + target[i].s_pos + j) = *(mem_area + target[i + 1].s_pos + j);
-                strcpy(target[i].name, target[i + 1].name);
-                strcpy(target[i].type, target[i + 1].type);
-                target[i].t_len = target[i + 1].t_len;
-                target[i + 1].s_pos = target[i].s_pos + target[i].t_len;
-            }
-            else{
-                for(size_t j = target[i].s_pos; j < *e_pos; j++) // Fill last mem area.
-                    *(mem_area + j) = '\0';
-                if(i != 0) // If rm elem when 2+ elem in mem.
-                    *e_pos = target[i - 1].s_pos + target[i - 1].t_len;
-                else // If rm only 1 elem in mem.
-                    *e_pos = 0;
-            }
+void deallocate(struct mem_info* target, char* mem_area, char* name, size_t* qty, size_t* e_pos, size_t t_pos){
+    for(size_t i = t_pos; i < *qty; i++){
+        if(i < *qty - 1){
+            for(size_t j = 0; j < target[i + 1].t_len; j++)
+                *(mem_area + target[i].s_pos + j) = *(mem_area + target[i + 1].s_pos + j);
+            strcpy(target[i].name, target[i + 1].name);
+            strcpy(target[i].type, target[i + 1].type);
+            target[i].t_len = target[i + 1].t_len;
+            target[i + 1].s_pos = target[i].s_pos + target[i].t_len;
+        }
+        else{
+            for(size_t j = target[i].s_pos; j < *e_pos; j++) // Fill last mem area.
+                *(mem_area + j) = '\0';
+            if(i != 0) // If rm elem when 2+ elem in mem.
+                *e_pos = target[i - 1].s_pos + target[i - 1].t_len;
+            else // If rm last remaining elem in mem.
+                *e_pos = 0;
         }
     }
     *qty -= 1;
