@@ -52,7 +52,7 @@ myFILE *myfopen(const char *pathname, const char *mode){
             free(tmp);
             return NULL;
         }
-    if(mode == "r"){
+    if(!strcmp(mode, "r")){
         if( access(pathname, R_OK) == -1 ){
             write(1, "Permission Denied.\n", 20);
             free(tmp);
@@ -62,6 +62,57 @@ myFILE *myfopen(const char *pathname, const char *mode){
         tmp->mode_flag = 0;
         tmp->offset = 0;
     }
+    if(!strcmp(mode, "r+")){
+        if( access(pathname, R_OK) == -1  || access(pathname, W_OK) == -1){
+            write(1, "Permission Denied.\n", 20);
+            free(tmp);
+            return NULL;
+        }
+        tmp->fd = open(pathname, O_RDWR);
+        tmp->mode_flag = 1;
+        tmp->offset = 0;
+    }
+    if(!strcmp(mode, "w")){
+        if( access(pathname, W_OK) == -1 ){
+            write(1, "Permission Denied.\n", 20);
+            free(tmp);
+            return NULL;
+        }
+        tmp->fd = open(pathname, O_WRONLY, O_TRUNC, O_CREAT);
+        tmp->mode_flag = 2;
+        tmp->offset = 0;
+    }
+    if(!strcmp(mode, "w+")){
+        if( access(pathname, R_OK) == -1 || access(pathname, W_OK) == -1 ){
+            write(1, "Permission Denied.\n", 20);
+            free(tmp);
+            return NULL;
+        }
+        tmp->fd = open(pathname, O_WRONLY, O_TRUNC, O_CREAT);
+        tmp->mode_flag = 3; // Need to fix
+        tmp->offset = 0;
+    }
+    if(!strcmp(mode, "a")){
+        if( access(pathname, W_OK) == -1 ){
+            write(1, "Permission Denied.\n", 20);
+            free(tmp);
+            return NULL;
+        }
+        tmp->fd = open(pathname, O_APPEND, O_CREAT);
+        tmp->mode_flag = 4;
+        tmp->offset = 0; // Need to fix
+    }
+    if(!strcmp(mode, "a+")){ // Can't understand exactly.
+        if( access(pathname, R_OK) == -1 || access(pathname, W_OK) == -1 ){
+            write(1, "Permission Denied.\n", 20);
+            free(tmp);
+            return NULL;
+        }
+        tmp->fd = open(pathname, O_WRONLY, O_TRUNC, O_CREAT);
+        tmp->mode_flag = 5;
+        tmp->offset = 0; // Need to fix
+    }
+    
     return tmp;
 }
 
@@ -120,6 +171,7 @@ int myfseek(myFILE *stream, int offset, int whence){
 }
 
 int myfread(void *ptr, int size, int nmemb, myFILE *stream){
+    // Imprement Write buffer write func.
     size_t result = read(stream -> fd, ptr, size * nmemb);
     if(result > 0){
         stream -> offset += result;
@@ -152,8 +204,28 @@ int myfread(void *ptr, int size, int nmemb, myFILE *stream){
     }*/
 }
 
-int myfwrite(const void *ptr, int size, int nmemb, myFILE *stream){
-    size_t result = write(stream -> fd, ptr, size * nmemb);
+int myfwrite(const void *ptr, int size, int nmemb, myFILE *stream){ // Need to add buffer.
+    
+    const char* char_ptr = ptr;
+    size_t tot_size = size * nmemb;
+    size_t buf_len = strlen(stream -> wrbuffer);
+    size_t tot_trial = (tot_size + buf_len) / 1024;
+    size_t cur_loc = 0;
+    if((tot_size + buf_len) % 1024 != 0)
+        tot_trial++;
+    for(size_t i = buf_len; i < 1024; i++)
+        stream -> wrbuffer[i] = char_ptr[cur_loc++];
+    size_t result = write(stream -> fd, stream -> wrbuffer, size * nmemb);
+    for(size_t i = 1; i < tot_trial; i++){
+        if(i != tot_trial)
+            for(size_t j = 0; j < 1024; j++)
+                stream -> wrbuffer[j] = char_ptr[cur_loc++];
+        else{
+            for(size_t j = 0; j < (tot_size + buf_len) % 1024; j++)
+                stream -> wrbuffer[j] = char_ptr[cur_loc++];
+        }
+        result = write(stream -> fd, stream -> wrbuffer, 1024);
+    }
     if(result > 0)
         return result;
     else
@@ -167,12 +239,31 @@ int myfflush(myFILE *stream){
         return EOF;
 }
 
-int myfputs(const char* str, int num, myFILE* stream){
-
+int myfputs(const char* str, int num, myFILE* stream){ // Need to add buffer.
+    size_t result = write(stream -> fd, str, num);
+    if(result > 0){
+        write(stream -> fd, "\0", 1);
+        return 0;
+    }
+    else
+        return EOF;
 }
 
 char* myfgets(char *str, int num, myFILE* stream){
-
+    char tmp;
+    for(size_t i = 0; i < num - 1; i++){
+        if(read(stream -> fd, &tmp, 1) != 0){
+            *(str + i) = tmp;
+            if(tmp == '\n'){
+                *(str + i + 1) = '\0';
+                return str;
+            }
+        }
+        else{
+            *(str + i) = '\0';
+            return NULL;
+        }
+    }
 }
 
 #endif // mystdio.h included
