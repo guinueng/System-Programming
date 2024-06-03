@@ -37,7 +37,7 @@ int myfseek(myFILE *stream, int offset, int whence);
 int myfread(void *ptr, int size, int nmemb, myFILE *stream);
 int myfwrite(const void *ptr, int size, int nmemb, myFILE *stream);
 int myfflush(myFILE *stream);
-int myfputs(const char* str, int num, myFILE* stream);
+int myfputs(const char* str, myFILE* stream); // Modified due to modification based on assignment 5's new ppt.
 char* myfgets(char* str, int num, myFILE* stream);
 
 
@@ -47,6 +47,7 @@ char* myfgets(char* str, int num, myFILE* stream);
 
 /* fopen mode: "r", "r+", "w", "w+", "a", "a+" */
 /* Read only = 0, Write only = 1, RW = 2 */
+// Need to consider permission error and file format error.
 myFILE *myfopen(const char *pathname, const char *mode){
     myFILE* tmp = malloc(sizeof(myFILE));
     if(!strcmp(mode, "r")){
@@ -140,10 +141,10 @@ int myfclose(myFILE *stream){
 }
 
 int myfseek(myFILE *stream, int offset, int whence){
-    size_t result = lseek(stream -> fd, offset, whence);
-    if(result != -1)
+    size_t result = lseek(stream -> fd, offset, whence); // If lseek success, returns positive values.
+    if(result != -1) // When success.
         return 0;
-    else
+    else // When fail.
         return -1;
 }
 
@@ -153,12 +154,14 @@ int myfread(void *ptr, int size, int nmemb, myFILE *stream){
         return 0;
     }
     size_t result = read(stream -> fd, ptr, size * nmemb);
-    if(result > 0){
+    if(result == size * nmemb){
         stream -> offset += result;
         return result;
     }
-    else
+    else{
+        stream -> offset += (result - 1); // read function returns value which contains '\0'. If nothing we get, it returns 1.
         return 0;
+    }
 }
 
 int myfwrite(const void *ptr, int size, int nmemb, myFILE *stream){ // Need to add buffer.
@@ -167,52 +170,38 @@ int myfwrite(const void *ptr, int size, int nmemb, myFILE *stream){ // Need to a
         return 0;
     }
     const char* char_ptr = ptr;
-    size_t tot_size = size * nmemb;
-    size_t buf_len = stream -> wrbuffer_len;
-    size_t tot_trial = (tot_size + buf_len) / 1024;
-    size_t cur_loc = 0;
-    size_t result = 0;
-    if((tot_size + buf_len) % 1024 != 0)
-        tot_trial++;
+    size_t tot_size = size * nmemb; // Tot qty of bytes to write.
+    size_t buf_len = stream -> wrbuffer_len; // strlen of wrbuffer.
+    size_t tot_trial = (tot_size + buf_len) / 1024; // How many trials need to store wrbuffer and flush to file.
+    size_t left_len = (tot_size + buf_len) % 1024; // How many qty need to store on wrbuffer.
+    size_t cur_loc = 0; // Given ptr's pos.
+    size_t result = 0; // tot # of bytes transferred.
+    size_t last_op = 0; // Trigger which need to run only store value on wrbuffer.
+    if(left_len != 0)
+        last_op++;
     
-    if(tot_size >= 1024){
+    if(tot_size >= 1024){ // First operation when str len >= 1024.
         for(size_t i = buf_len; i < 1024; i++)
             stream -> wrbuffer[i] = char_ptr[cur_loc++];
-        result = write(stream -> fd, stream -> wrbuffer, size * nmemb);
+        result += write(stream -> fd, stream -> wrbuffer, 1024);
+        stream -> wrbuffer_len = 0;
     }
-    else
-        for(size_t i = buf_len; i < buf_len + tot_size; i++)
-            stream -> wrbuffer[stream -> wrbuffer_len++] = char_ptr[cur_loc++];
     
-    for(size_t i = 1; i < tot_trial; i++){
-        stream -> wrbuffer_len = (tot_size + buf_len) % 1024;
-        if(stream -> wrbuffer_len == 0)
-            stream -> wrbuffer_len = 1024;
-        for(size_t j = 0; j < stream -> wrbuffer_len; j++)
+    for(size_t i = 1; i < tot_trial; i++){ // Middle operation when strlen >= 2048.
+        for(size_t j = 0; j < 1024; j++)
             stream -> wrbuffer[j] = char_ptr[cur_loc++];
         if(stream -> wrbuffer_len == 1024){
-            result = write(stream -> fd, stream -> wrbuffer, 1024);
+            result += write(stream -> fd, stream -> wrbuffer, 1024);
             stream -> wrbuffer_len = 0;    
         }
-        /*
-        if(i != tot_trial){
-            for(size_t j = 0; j < 1024; j++)
-                stream -> wrbuffer[j] = char_ptr[cur_loc++];
-            result = write(stream -> fd, stream -> wrbuffer, 1024);
-        }
-        else{
-            stream -> wrbuffer_len = (tot_size + buf_len) % 1024;
-            if(stream -> wrbuffer_len == 0)
-                stream -> wrbuffer_len = 1024;
-            for(size_t j = 0; j < stream -> wrbuffer_len; j++)
-                stream -> wrbuffer[j] = char_ptr[cur_loc++];
-            if(stream -> wrbuffer_len == 1024){
-                result = write(stream -> fd, stream -> wrbuffer, 1024);
-                stream -> wrbuffer_len = 0;    
-            }
-        }*/
-        
     }
+
+    if(last_op){ // Last operation when leftover strlen < 1024.
+        for(size_t i = 0; i < left_len; i++)
+            stream -> wrbuffer[stream -> wrbuffer_len++] = char_ptr[cur_loc++];
+        stream -> wrbuffer_len = left_len;
+    }
+
     if(result > 0 || stream -> wrbuffer_len > 0)
         return result;
     else
@@ -225,29 +214,50 @@ int myfflush(myFILE *stream){ // Let set file offset in the final part of file. 
     }
     if(stream -> wrbuffer_len == 0)
         return 0;
-    else if( stream -> wrbuffer_len > 0 && write(stream -> fd, stream -> wrbuffer, stream -> wrbuffer_len) >= 0)
+    else if( stream -> wrbuffer_len > 0 && write(stream -> fd, stream -> wrbuffer, stream -> wrbuffer_len) >= 0){
+        stream -> wrbuffer_len = 0;
         return 0;
+    }
     else
         return EOF;
 }
 
-int myfputs(const char* str, int num, myFILE* stream){
+int myfputs(const char* str, myFILE* stream){
     if(stream -> mode_flag == 0){ // If does not have write permission.
         write(1, "Permission Denied\n", 19);
         return 0;
     }
-    // Need to add buffer.
-    size_t len = 0;
-    if(strlen(str) < num)
-        len = strlen(str);
-    else
-        len = num;
-    size_t result = write(stream -> fd, str, len);
-    if(result > 0){
-        write(stream -> fd, "\0", 1);
+    
+    size_t str_len = strlen(str);
+    size_t wbuf_len = stream -> wrbuffer_len;
+    size_t tot_trial = (str_len + wbuf_len) / 1024;
+    size_t left_len = (str_len + wbuf_len) % 1024;
+    size_t cur_loc = 0;
+    size_t result = 0;
+
+    if(tot_trial > 0){ // First operation when str len >= 1024.
+        for(size_t i = wbuf_len; i < 1024; i++)
+            stream -> wrbuffer[i] = str[cur_loc++];
+        result += write(stream -> fd, stream -> wrbuffer, 1024);
         stream -> wrbuffer_len = 0;
-        return 0;
     }
+    
+    for(size_t i = 1; i < tot_trial; i++){ // Middle operation when strlen >= 2048.
+        for(size_t j = 0; j < 1024; j++)
+            stream -> wrbuffer[j] = str[cur_loc++];
+        if(stream -> wrbuffer_len == 1024){
+            result += write(stream -> fd, stream -> wrbuffer, 1024);
+            stream -> wrbuffer_len = 0;    
+        }
+    }
+
+    if(left_len != 0){ // Last operation when leftover strlen < 1024.
+        for(size_t i = 0; i < left_len; i++)
+            stream -> wrbuffer[stream -> wrbuffer_len++] = str[cur_loc++];
+    }
+
+    if(result > 0)
+        return 0;
     else
         return EOF;
 }
