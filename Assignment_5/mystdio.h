@@ -47,32 +47,51 @@ char* myfgets(char* str, int num, myFILE* stream);
 
 /* fopen mode: "r", "r+", "w", "w+", "a", "a+" */
 /* Read only = 0, Write only = 1, RW = 2 */
-// Need to consider permission error and file format error.
 myFILE *myfopen(const char *pathname, const char *mode){
     myFILE* tmp = malloc(sizeof(myFILE));
+
+    if(strlen(pathname) > 512 || strlen(pathname) < 0){ // pathname exceeds 512 bytes or lower than 0.
+        write(1, "File Format Error\n", 18);
+        free(tmp);
+        return NULL;
+    }
+
+    // Need to implement file size check and dir check.
+    struct stat buf;
+    stat(pathname, &buf);
+    if(S_ISDIR(buf.st_mode)){ // Check given filepath's file is folder or not.
+        write(1, "File Format Error\n", 18);
+        free(tmp);
+        return NULL;
+    }
+
+    if(buf.st_size < 0 || buf.st_size > 2147483647){
+        write(1, "File Format Error\n", 18);
+        free(tmp);
+        return NULL;
+    }
+
     if(!strcmp(mode, "r")){
         if( access(pathname, F_OK) == -1 ){ // Check File Exist.
-            write(1, "File does not exist.\n", 22);
             free(tmp);
             return NULL;
         }
         if( access(pathname, R_OK) == -1 ){
-            write(1, "Permission Denied\n", 19);
+            write(1, "File Format Error\n", 18);
             free(tmp);
             return NULL;
         }
-        tmp->fd = open(pathname, O_RDONLY);
-        tmp->mode_flag = 0;
-        tmp->offset = 0;
+        tmp -> fd = open(pathname, O_RDONLY);
+        tmp -> mode_flag = 0;
+        tmp -> offset = 0;
     }
     if(!strcmp(mode, "r+")){
         if( access(pathname, F_OK) == -1 ){
-            write(1, "File does not exist\n", 21);
             free(tmp);
             return NULL;
         }
         if( access(pathname, R_OK) == -1  || access(pathname, W_OK) == -1){
-            write(1, "Permission Denied\n", 19);
+            write(1, "File Format Error\n", 18);
             free(tmp);
             return NULL;
         }
@@ -84,7 +103,7 @@ myFILE *myfopen(const char *pathname, const char *mode){
     }
     if(!strcmp(mode, "w")){
         if( access(pathname, F_OK) != -1 && access(pathname, W_OK) == -1 ){
-            write(1, "Permission Denied\n", 19);
+            write(1, "File Format Error\n", 18);
             free(tmp);
             return NULL;
         }
@@ -96,41 +115,41 @@ myFILE *myfopen(const char *pathname, const char *mode){
     }
     if(!strcmp(mode, "w+")){
         if( access(pathname, F_OK) != -1 && (access(pathname, R_OK) == -1 || access(pathname, W_OK) == -1) ){
-            write(1, "Permission Denied\n", 19);
+            write(1, "File Format Error\n", 18);
             free(tmp);
             return NULL;
         }
-        tmp->fd = open(pathname, O_RDWR | O_TRUNC | O_CREAT, 0644);
-        tmp->mode_flag = 2; // Need to fix
-        tmp->offset = 0;
+        tmp -> fd = open(pathname, O_RDWR | O_TRUNC | O_CREAT, 0644);
+        tmp -> mode_flag = 2;
+        tmp -> offset = 0;
         tmp -> wrbuffer[0] = '\0';
         tmp -> wrbuffer_len = 0;
     }
     if(!strcmp(mode, "a")){
         if( access(pathname, F_OK) != -1 && (access(pathname, W_OK) == -1) ){
-            write(1, "Permission Denied\n", 19);
+            write(1, "File Format Error\n", 18);
             free(tmp);
             return NULL;
         }
-        tmp->fd = open(pathname, O_APPEND | O_CREAT);
-        tmp->mode_flag = 1;
-        tmp->offset = 0; // Need to fix at the end of file.
+        tmp -> fd = open(pathname, O_WRONLY | O_APPEND | O_CREAT, 0644);
+        tmp -> mode_flag = 1;
+        tmp -> offset = 0;
         tmp -> wrbuffer[0] = '\0';
         tmp -> wrbuffer_len = 0;
     }
     if(!strcmp(mode, "a+")){ // Can't understand exactly.
         if( access(pathname, F_OK) != -1 && access(pathname, R_OK) == -1 || access(pathname, W_OK) == -1 ){
-            write(1, "Permission Denied\n", 19);
+            write(1, "File Format Error\n", 18);
             free(tmp);
             return NULL;
         }
-        tmp->fd = open(pathname, O_WRONLY | O_TRUNC | O_CREAT);
-        tmp->mode_flag = 2;
-        tmp->offset = 0; // Need to fix value of end of file.
+        tmp -> fd = open(pathname, O_RDWR | O_TRUNC | O_CREAT, 0644);
+        tmp -> mode_flag = 2;
+        tmp -> offset = 0; // Need to fix value of end of file.
         tmp -> wrbuffer[0] = '\0';
         tmp -> wrbuffer_len = 0;
     }
-    
+
     return tmp;
 }
 
@@ -153,7 +172,9 @@ int myfread(void *ptr, int size, int nmemb, myFILE *stream){
         write(1, "Permission Denied\n", 19);
         return 0;
     }
+
     size_t result = read(stream -> fd, ptr, size * nmemb);
+
     if(result == size * nmemb){
         stream -> offset += result;
         return result;
@@ -169,6 +190,7 @@ int myfwrite(const void *ptr, int size, int nmemb, myFILE *stream){ // Need to a
         write(1, "Permission Denied\n", 19);
         return 0;
     }
+
     const char* char_ptr = ptr;
     size_t tot_size = size * nmemb; // Tot qty of bytes to write.
     size_t buf_len = stream -> wrbuffer_len; // strlen of wrbuffer.
@@ -176,9 +198,6 @@ int myfwrite(const void *ptr, int size, int nmemb, myFILE *stream){ // Need to a
     size_t left_len = (tot_size + buf_len) % 1024; // How many qty need to store on wrbuffer.
     size_t cur_loc = 0; // Given ptr's pos.
     size_t result = 0; // tot # of bytes transferred.
-    size_t last_op = 0; // Trigger which need to run only store value on wrbuffer.
-    if(left_len != 0)
-        last_op++;
     
     if(tot_size >= 1024){ // First operation when str len >= 1024.
         for(size_t i = buf_len; i < 1024; i++)
@@ -196,7 +215,7 @@ int myfwrite(const void *ptr, int size, int nmemb, myFILE *stream){ // Need to a
         }
     }
 
-    if(last_op){ // Last operation when leftover strlen < 1024.
+    if(left_len != 0){ // Last operation when leftover strlen < 1024.
         for(size_t i = 0; i < left_len; i++)
             stream -> wrbuffer[stream -> wrbuffer_len++] = char_ptr[cur_loc++];
         stream -> wrbuffer_len = left_len;
