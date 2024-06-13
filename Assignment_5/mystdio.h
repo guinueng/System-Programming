@@ -133,7 +133,7 @@ myFILE *myfopen(const char *pathname, const char *mode){
         }
         tmp -> fd = open(pathname, O_WRONLY | O_APPEND | O_CREAT, 0644);
         tmp -> mode_flag = 1;
-        tmp -> offset = 0;
+        tmp -> offset = buf.st_size; // Offset is setted in the last part of file.
         tmp -> wrbuffer[0] = '\0';
         tmp -> wrbuffer_len = 0;
     }
@@ -145,7 +145,7 @@ myFILE *myfopen(const char *pathname, const char *mode){
         }
         tmp -> fd = open(pathname, O_RDWR | O_TRUNC | O_CREAT, 0644);
         tmp -> mode_flag = 2;
-        tmp -> offset = 0; // Need to fix value of end of file.
+        tmp -> offset = buf.st_size;
         tmp -> wrbuffer[0] = '\0';
         tmp -> wrbuffer_len = 0;
     }
@@ -161,8 +161,10 @@ int myfclose(myFILE *stream){
 
 int myfseek(myFILE *stream, int offset, int whence){
     size_t result = lseek(stream -> fd, offset, whence); // If lseek success, returns positive values.
-    if(result != -1) // When success.
+    if(result != -1){ // When success.
+        stream -> offset += offset;
         return 0;
+    }
     else // When fail.
         return -1;
 }
